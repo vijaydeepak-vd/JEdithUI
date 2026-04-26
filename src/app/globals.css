@@ -1,0 +1,83 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* ── Dark theme is the permanent default ─────────────── */
+  :root {
+    --background: 224 35% 7%;
+    --foreground: 213 30% 92%;
+    --card: 224 30% 10%;
+    --card-foreground: 213 30% 92%;
+    --popover: 224 30% 10%;
+    --popover-foreground: 213 30% 92%;
+    --primary: 213 30% 92%;
+    --primary-foreground: 224 35% 7%;
+    --secondary: 224 25% 14%;
+    --secondary-foreground: 213 30% 92%;
+    --muted: 224 25% 14%;
+    --muted-foreground: 215 16% 52%;
+    --accent: 224 25% 14%;
+    --accent-foreground: 213 30% 92%;
+    --destructive: 0 65% 55%;
+    --destructive-foreground: 0 0% 100%;
+    --border: 224 22% 16%;
+    --input: 224 22% 16%;
+    --ring: 213 30% 75%;
+    --radius: 0.75rem;
+  }
+}
+
+@layer base {
+  * {
+    @apply border-border;
+  }
+
+  body {
+    @apply bg-background text-foreground;
+    font-feature-settings: "rlig" 1, "calt" 1;
+  }
+
+  /* Slim scrollbar — dark style */
+  ::-webkit-scrollbar {
+    width: 4px;
+    height: 4px;
+  }
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 99px;
+  }
+  ::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 255, 255, 0.18);
+  }
+}
+
+@layer utilities {
+  /* Sidebar gradient — deep navy */
+  .sidebar-gradient {
+    background: linear-gradient(160deg, #171f52 0%, #12193f 50%, #0e1535 100%);
+  }
+
+  /* Subtle card hover lift */
+  .card-hover {
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+  .card-hover:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 32px -4px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Color bar utility for palette cards */
+  .color-bar > * {
+    flex: 1;
+    min-width: 0;
+  }
+
+  /* Coral glow */
+  .coral-glow {
+    box-shadow: 0 0 16px rgba(249, 97, 103, 0.4);
+  }
+}

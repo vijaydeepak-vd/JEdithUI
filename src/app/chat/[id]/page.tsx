@@ -1,0 +1,349 @@
+"use client";
+
+import { useState, useEffect, useRef, use } from "react";
+import { useSearchParams } from "next/navigation";
+import {
+  ArrowLeft,
+  Code2,
+  Eye,
+  Copy,
+  Check,
+  Download,
+  Image as ImageIcon,
+} from "lucide-react";
+import Link from "next/link";
+import { useChatThread } from "@/hooks/useChat";
+import { PromptInput } from "@/components/generator/PromptInput";
+import { CodePreview } from "@/components/chat/CodePreview";
+import { timeAgo } from "@/lib/utils";
+import useSWR from "swr";
+import type { MessageData, PaletteColor, Framework, UILibrary } from "@/types";
+
+const fetcher = (url: string) => fetch(url).then((r) => r.json());
+
+type LeftTab = "preview" | "code";
+
+export default function ChatPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  const { id } = use(params);
+  const searchParams = useSearchParams();
+  const firstPrompt = searchParams.get("firstPrompt");
+
+  const { chat, isLoading: chatLoading } = useChatThread(id);
+  const { data: messagesData, mutate: refreshMessages } = useSWR(
+    id ? `/api/chat/${id}/messages` : null,
+    fetcher
+  );
+
+  const [messages, setMessages] = useState<MessageData[]>([]);
+  const [generating, setGenerating] = useState(false);
+  const [firstPromptSent, setFirstPromptSent] = useState(false);
+  const [activeTab, setActiveTab] = useState<LeftTab>("preview");
+  const [copied, setCopied] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (messagesData?.messages) setMessages(messagesData.messages);
+  }, [messagesData]);
+
+  useEffect(() => {
+    if (firstPrompt && !firstPromptSent && chat && messages.length === 0) {
+      setFirstPromptSent(true);
+      handleSend(firstPrompt);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [firstPrompt, chat, messages.length, firstPromptSent]);
+
+  // Auto-scroll chat
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
+  }, [messages, generating]);
+
+  const handleSend = async (prompt: string, imageBase64?: string) => {
+    setGenerating(true);
+    try {
+      const res = await fetch("/api/generate", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ chatId: id, prompt, imageBase64 }),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        await refreshMessages();
+      }
+    } finally {
+      setGenerating(false);
+    }
+  };
+
+  // Latest code version
+  const latestCodeMsg = [...messages].reverse().find((m) => m.codeVersion);
+  const latestCode = latestCodeMsg?.codeVersion;
+
+  // Chat metadata
+  const palette: PaletteColor[] = chat?.palette?.colors ?? [];
+  const framework: Framework = (chat?.framework as Framework) ?? "REACT";
+  const libraries: UILibrary[] = (chat?.libraries as UILibrary[]) ?? [];
+
+  // ── Copy code ──
+  const handleCopy = async () => {
+    if (!latestCode?.code) return;
+    await navigator.clipboard.writeText(latestCode.code);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
+
+  // ── Download code ──
+  const handleDownload = () => {
+    if (!latestCode?.code) return;
+    const ext = latestCode.language || "tsx";
+    const blob = new Blob([latestCode.code], { type: "text/plain" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `${chat?.name || "component"}.${ext}`;
+    a.click();
+    URL.revokeObjectURL(url);
+  };
+
+  // ── Fix error from preview ──
+  const handleFixError = (errorMsg: string) => {
+    handleSend(
+      `The preview shows this error: ${errorMsg}. Please fix the code so it renders correctly.`
+    );
+  };
+
+  if (chatLoading) {
+    return (
+      <div className="flex items-center justify-center h-full">
+        <div className="animate-spin w-6 h-6 border-2 border-jedith-navy border-t-transparent rounded-full" />
+      </div>
+    );
+  }
+
+  if (!chat) {
+    return (
+      <div className="flex flex-col items-center justify-center h-full gap-3">
+        <p className="text-muted-foreground">Chat not found</p>
+        <Link
+          href="/chat"
+          className="text-sm text-jedith-coral hover:underline"
+        >
+          Back to chats
+        </Link>
+      </div>
+    );
+  }
+
+  return (
+    <div className="flex flex-col h-screen">
+      {/* ── Header ── */}
+      <div className="flex items-center gap-3 px-4 py-3 border-b border-border bg-card/50 flex-shrink-0">
+        <Link
+          href="/chat"
+          className="p-1.5 rounded-lg hover:bg-muted transition-colors"
+        >
+          <ArrowLeft className="w-4 h-4" />
+        </Link>
+        <div className="flex-1 min-w-0">
+          <h1 className="font-semibold truncate">{chat.name}</h1>
+          <p className="text-[11px] text-muted-foreground">
+            {chat.palette?.name} · {framework} ·{" "}
+            {libraries.join(", ") || "Tailwind"} · {chat.modelName}
+          </p>
+        </div>
+
+        {/* Actions */}
+        {latestCode && (
+          <div className="flex items-center gap-1.5">
+            <button
+              onClick={handleCopy}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:text-foreground hover:border-foreground/30 transition-colors"
+            >
+              {copied ? (
+                <Check className="w-3.5 h-3.5 text-green-400" />
+              ) : (
+                <Copy className="w-3.5 h-3.5" />
+              )}
+              {copied ? "Copied" : "Copy"}
+            </button>
+            <button
+              onClick={handleDownload}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-jedith-coral text-white text-xs font-semibold hover:bg-[#e8505a] transition-colors"
+            >
+              <Download className="w-3.5 h-3.5" />
+              .{latestCode.language || "tsx"}
+            </button>
+          </div>
+        )}
+      </div>
+
+      {/* ── Main content: side by side ── */}
+      <div className="flex-1 flex min-h-0">
+        {/* Left panel: Code / Preview */}
+        <div className="flex-1 flex flex-col border-r border-border bg-background">
+          {latestCode ? (
+            <>
+              {/* Tab bar */}
+              <div className="flex items-center gap-1 px-4 pt-3 pb-2 border-b border-border bg-card/30">
+                <button
+                  onClick={() => setActiveTab("preview")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    activeTab === "preview"
+                      ? "bg-jedith-navy text-white"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  <Eye className="w-3.5 h-3.5" />
+                  Preview
+                </button>
+                <button
+                  onClick={() => setActiveTab("code")}
+                  className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
+                    activeTab === "code"
+                      ? "bg-jedith-navy text-white"
+                      : "text-muted-foreground hover:text-foreground hover:bg-muted"
+                  }`}
+                >
+                  <Code2 className="w-3.5 h-3.5" />
+                  Code
+                </button>
+
+                {/* Version info */}
+                <div className="ml-auto flex items-center gap-2 text-[11px] text-muted-foreground">
+                  <span>v{latestCode.version}</span>
+                  <span>·</span>
+                  <span>{latestCode.language}</span>
+                  <span>·</span>
+                  <span>{latestCode.modelName}</span>
+                </div>
+              </div>
+
+              {/* Content area */}
+              <div className="flex-1 min-h-0 overflow-hidden">
+                {activeTab === "preview" ? (
+                  <div className="h-full p-4">
+                    <CodePreview
+                      code={latestCode.code}
+                      framework={framework}
+                      libraries={libraries}
+                      palette={palette}
+                      onFixError={handleFixError}
+                    />
+                  </div>
+                ) : (
+                  <div className="h-full overflow-auto">
+                    <pre className="text-xs text-zinc-100 p-5 font-mono leading-relaxed bg-zinc-950 min-h-full">
+                      <code>{latestCode.code}</code>
+                    </pre>
+                  </div>
+                )}
+              </div>
+            </>
+          ) : (
+            <div className="flex-1 flex flex-col items-center justify-center text-center gap-3 text-muted-foreground p-8">
+              <span className="text-5xl">✨</span>
+              <p className="text-sm font-medium">No code yet</p>
+              <p className="text-xs max-w-xs">
+                Describe the UI you want in the chat — or attach a screenshot to
+                recreate it. Code and preview will render here.
+              </p>
+            </div>
+          )}
+        </div>
+
+        {/* Right panel: Chat thread */}
+        <div className="w-96 flex flex-col bg-card/30 flex-shrink-0">
+          {/* Chat messages */}
+          <div className="flex-1 overflow-y-auto p-4 space-y-4">
+            {messages.length === 0 && !generating ? (
+              <div className="flex flex-col items-center justify-center h-full text-center gap-2 text-muted-foreground">
+                <p className="text-sm font-medium">Start the conversation</p>
+                <p className="text-xs">
+                  Describe what you want to build, or attach a screenshot
+                </p>
+              </div>
+            ) : (
+              messages.map((msg) => (
+                <div key={msg.id}>
+                  <div
+                    className={`px-3 py-2.5 rounded-2xl text-sm ${
+                      msg.role === "USER"
+                        ? "bg-jedith-navy text-white rounded-tr-sm ml-4"
+                        : "bg-secondary/50 border border-border rounded-tl-sm mr-4"
+                    }`}
+                  >
+                    {/* Show attached image */}
+                    {msg.imageBase64 && (
+                      <div className="mb-2">
+                        {/* eslint-disable-next-line @next/next/no-img-element */}
+                        <img
+                          src={`data:image/png;base64,${msg.imageBase64}`}
+                          alt="Attached screenshot"
+                          className="max-w-full max-h-40 rounded-lg border border-white/20"
+                        />
+                      </div>
+                    )}
+                    {/* Show image badge if hasImage but no base64 (shouldn't happen, but safe fallback) */}
+                    {!msg.imageBase64 && msg.hasImage && (
+                      <div className="flex items-center gap-1 mb-1 text-xs opacity-70">
+                        <ImageIcon className="w-3 h-3" />
+                        <span>Screenshot attached</span>
+                      </div>
+                    )}
+                    {msg.content}
+                  </div>
+
+                  {msg.codeVersion && (
+                    <div className="mt-2 mr-4 bg-secondary/30 rounded-xl p-3 border border-border/50">
+                      <p className="text-[11px] font-medium text-muted-foreground mb-1">
+                        v{msg.codeVersion.version} ·{" "}
+                        {msg.codeVersion.language} ·{" "}
+                        {msg.codeVersion.modelName}
+                      </p>
+                      <pre className="text-[10px] bg-background text-foreground/80 p-2.5 rounded-lg overflow-x-auto max-h-32 font-mono leading-relaxed">
+                        {msg.codeVersion.code.slice(0, 300)}
+                        {msg.codeVersion.code.length > 300 ? "…" : ""}
+                      </pre>
+                    </div>
+                  )}
+
+                  <p className="text-[10px] text-muted-foreground px-1 mt-1">
+                    {timeAgo(msg.createdAt)}
+                  </p>
+                </div>
+              ))
+            )}
+
+            {generating && (
+              <div className="flex gap-2 items-center mr-4 px-3 py-2.5 rounded-2xl rounded-tl-sm bg-secondary/50 border border-border w-fit">
+                <span className="w-1.5 h-1.5 rounded-full bg-jedith-coral animate-bounce [animation-delay:0ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-jedith-coral animate-bounce [animation-delay:150ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-jedith-coral animate-bounce [animation-delay:300ms]" />
+              </div>
+            )}
+
+            <div ref={chatEndRef} />
+          </div>
+
+          {/* Prompt input */}
+          <div className="flex-shrink-0 border-t border-border p-3">
+            <PromptInput
+              onSubmit={handleSend}
+              loading={generating}
+              enableImageUpload={true}
+              placeholder={
+                messages.length === 0
+                  ? "Describe the UI you want…"
+                  : "Refine — e.g. 'Add a dark mode toggle'"
+              }
+            />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
