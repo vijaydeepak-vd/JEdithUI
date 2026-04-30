@@ -2,11 +2,12 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { ArrowLeft, Code2, Presentation, Trash2, Save, Loader2 } from "lucide-react";
+import { ArrowLeft, Code2, Presentation, Trash2, Save, Loader2, Sparkles, Download } from "lucide-react";
 import Link from "next/link";
 import { PaletteEditor } from "@/components/palette/PaletteEditor";
 import { ColorSwatch } from "@/components/palette/ColorSwatch";
 import { usePalettes } from "@/hooks/usePalettes";
+import { SkillNameModal } from "@/components/ui/SkillNameModal";
 import { getOrCreateSessionId } from "@/lib/utils";
 import type { PaletteData, PaletteColor } from "@/types";
 
@@ -20,6 +21,8 @@ export default function PaletteDetailPage() {
   const [editing, setEditing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [downloadingSkill, setDownloadingSkill] = useState(false);
+  const [skillModalOpen, setSkillModalOpen] = useState(false);
 
   useEffect(() => {
     const found = palettes.find((p) => p.id === id);
@@ -59,6 +62,27 @@ export default function PaletteDetailPage() {
       router.push("/palettes");
     } finally {
       setDeleting(false);
+    }
+  };
+
+  const handleDownloadSkill = async (skillName: string) => {
+    setSkillModalOpen(false);
+    setDownloadingSkill(true);
+    try {
+      const params = new URLSearchParams({ name: skillName });
+      const res = await fetch(`/api/palette/${id}/skill?${params}`);
+      if (!res.ok) throw new Error("Failed to generate skill");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.headers.get("Content-Disposition")?.match(/filename="(.+)"/)?.[1] || `${skillName}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Skill download failed:", e);
+    } finally {
+      setDownloadingSkill(false);
     }
   };
 
@@ -144,7 +168,7 @@ export default function PaletteDetailPage() {
 
       {/* Actions */}
       {!editing && (
-        <div className="grid grid-cols-2 gap-4">
+        <div className="grid grid-cols-3 gap-4">
           <Link
             href={`/chat/new?paletteId=${palette.id}`}
             className="flex items-center justify-center gap-2 p-4 rounded-xl border border-border hover:border-jedith-navy hover:bg-muted/30 transition-all group"
@@ -166,8 +190,32 @@ export default function PaletteDetailPage() {
               <p className="text-xs text-muted-foreground">Create a Marp presentation</p>
             </div>
           </Link>
+
+          <button
+            onClick={() => setSkillModalOpen(true)}
+            disabled={downloadingSkill}
+            className="flex items-center justify-center gap-2 p-4 rounded-xl border border-border hover:border-purple-500 hover:bg-muted/30 transition-all group disabled:opacity-50"
+          >
+            {downloadingSkill ? (
+              <Loader2 className="w-5 h-5 text-purple-500 animate-spin" />
+            ) : (
+              <Sparkles className="w-5 h-5 text-purple-500 group-hover:scale-110 transition-transform" />
+            )}
+            <div className="text-left">
+              <p className="text-sm font-semibold">Claude Skill</p>
+              <p className="text-xs text-muted-foreground">Download as AI skill</p>
+            </div>
+          </button>
         </div>
       )}
+
+      {/* Skill name modal */}
+      <SkillNameModal
+        open={skillModalOpen}
+        defaultName={palette.name}
+        onConfirm={handleDownloadSkill}
+        onCancel={() => setSkillModalOpen(false)}
+      />
     </div>
   );
 }

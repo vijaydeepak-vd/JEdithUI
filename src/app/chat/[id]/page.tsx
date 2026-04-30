@@ -10,11 +10,14 @@ import {
   Check,
   Download,
   Image as ImageIcon,
+  Sparkles,
+  Loader2,
 } from "lucide-react";
 import Link from "next/link";
 import { useChatThread } from "@/hooks/useChat";
 import { PromptInput } from "@/components/generator/PromptInput";
 import { CodePreview } from "@/components/chat/CodePreview";
+import { SkillNameModal } from "@/components/ui/SkillNameModal";
 import { timeAgo } from "@/lib/utils";
 import useSWR from "swr";
 import type { MessageData, PaletteColor, Framework, UILibrary } from "@/types";
@@ -43,6 +46,8 @@ export default function ChatPage({
   const [firstPromptSent, setFirstPromptSent] = useState(false);
   const [activeTab, setActiveTab] = useState<LeftTab>("preview");
   const [copied, setCopied] = useState(false);
+  const [downloadingSkill, setDownloadingSkill] = useState(false);
+  const [skillModalOpen, setSkillModalOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -116,6 +121,30 @@ export default function ChatPage({
     );
   };
 
+  // ── Download as Claude Skill ──
+  const handleDownloadSkill = async (skillName: string) => {
+    if (!chat?.paletteId) return;
+    setSkillModalOpen(false);
+    setDownloadingSkill(true);
+    try {
+      const params = new URLSearchParams({ name: skillName });
+      if (libraries.length > 0) params.set("libraries", libraries.join(","));
+      const res = await fetch(`/api/palette/${chat.paletteId}/skill?${params}`);
+      if (!res.ok) throw new Error("Failed to generate skill");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = res.headers.get("Content-Disposition")?.match(/filename="(.+)"/)?.[1] || `${skillName}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Skill download failed:", e);
+    } finally {
+      setDownloadingSkill(false);
+    }
+  };
+
   if (chatLoading) {
     return (
       <div className="flex items-center justify-center h-full">
@@ -176,6 +205,19 @@ export default function ChatPage({
             >
               <Download className="w-3.5 h-3.5" />
               .{latestCode.language || "tsx"}
+            </button>
+            <button
+              onClick={() => setSkillModalOpen(true)}
+              disabled={downloadingSkill}
+              className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-purple-500/50 text-xs font-medium text-purple-400 hover:text-purple-300 hover:border-purple-400 hover:bg-purple-500/10 transition-colors disabled:opacity-40"
+              title="Download as Claude Code skill"
+            >
+              {downloadingSkill ? (
+                <Loader2 className="w-3.5 h-3.5 animate-spin" />
+              ) : (
+                <Sparkles className="w-3.5 h-3.5" />
+              )}
+              Skill
             </button>
           </div>
         )}
@@ -344,6 +386,14 @@ export default function ChatPage({
           </div>
         </div>
       </div>
+
+      {/* Skill name modal */}
+      <SkillNameModal
+        open={skillModalOpen}
+        defaultName={chat.name}
+        onConfirm={handleDownloadSkill}
+        onCancel={() => setSkillModalOpen(false)}
+      />
     </div>
   );
 }
