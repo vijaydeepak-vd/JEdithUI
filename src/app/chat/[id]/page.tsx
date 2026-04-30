@@ -17,10 +17,13 @@ import Link from "next/link";
 import { useChatThread, useChatMessages } from "@/hooks/useChat";
 import { db, generateId, nowISO } from "@/lib/db-client";
 import { PromptInput } from "@/components/generator/PromptInput";
+import { InlineModelSelector } from "@/components/generator/InlineModelSelector";
 import { CodePreview } from "@/components/chat/CodePreview";
 import { SkillNameModal } from "@/components/ui/SkillNameModal";
 import { timeAgo, generateChatName } from "@/lib/utils";
-import type { MessageData, PaletteColor, Framework, UILibrary } from "@/types";
+import { buildFileContext, getFirstImageBase64 } from "@/lib/file-reader";
+import { useOllamaModels } from "@/hooks/useOllamaModels";
+import type { MessageData, PaletteColor, Framework, UILibrary, AttachedFile } from "@/types";
 
 type LeftTab = "preview" | "code";
 
@@ -40,6 +43,8 @@ export default function ChatPage({
     refresh: refreshMessages,
   } = useChatMessages(id);
 
+  const { models } = useOllamaModels();
+
   const [generating, setGenerating] = useState(false);
   const [firstPromptSent, setFirstPromptSent] = useState(false);
   const [activeTab, setActiveTab] = useState<LeftTab>("preview");
@@ -47,6 +52,10 @@ export default function ChatPage({
   const [downloadingSkill, setDownloadingSkill] = useState(false);
   const [skillModalOpen, setSkillModalOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // Check if current model supports vision
+  const currentModel = models.find((m) => m.name === chat?.modelName);
+  const isVision = currentModel?.isVision ?? false;
 
   useEffect(() => {
     if (firstPrompt && !firstPromptSent && chat && messages.length === 0 && !messagesLoading) {
@@ -66,9 +75,13 @@ export default function ChatPage({
   const framework: Framework = (chat?.framework as Framework) ?? "REACT";
   const libraries: UILibrary[] = (chat?.libraries as UILibrary[]) ?? [];
 
-  const handleSend = async (prompt: string, imageBase64?: string) => {
+  const handleSend = async (prompt: string, attachments?: AttachedFile[]) => {
     if (!chat) return;
     setGenerating(true);
+
+    // Process attachments: extract file context and first image
+    const fileContext = attachments ? buildFileContext(attachments) : undefined;
+    const imageBase64 = attachments ? getFirstImageBase64(attachments) : undefined;
 
     // Auto-name the chat from the first prompt
     if (chat.name === "Untitled Chat" || !chat.name) {
@@ -110,6 +123,7 @@ export default function ChatPage({
           framework,
           existingCode,
           imageBase64,
+          fileContext,
         }),
       });
 
@@ -170,6 +184,13 @@ export default function ChatPage({
     } finally {
       setGenerating(false);
     }
+  };
+
+  // ── Switch model mid-chat ──
+  const handleModelChange = async (newModel: string) => {
+    if (!chat || newModel === chat.modelName) return;
+    await db.chats.update(id, { modelName: newModel, updatedAt: nowISO() });
+    refreshChat();
   };
 
   // Latest code version
@@ -271,9 +292,13 @@ export default function ChatPage({
         </Link>
         <div className="flex-1 min-w-0">
           <h1 className="font-semibold truncate">{chat.name}</h1>
-          <p className="text-[11px] text-muted-foreground">
-            {chat.palette?.name} · {framework} ·{" "}
-            {libraries.join(", ") || "Tailwind"} · {chat.modelName}
+          <p className="text-[11px] text-muted-foreground flex items-center gap-1 flex-wrap">
+            <span>{chat.palette?.name} · {framework} · {libraries.join(", ") || "Tailwind"} ·</span>
+            <InlineModelSelector
+              value={chat.modelName}
+              onChange={handleModelChange}
+              disabled={generating}
+            />
           </p>
         </div>
 
@@ -463,12 +488,24 @@ export default function ChatPage({
             <div ref={chatEndRef} />
           </div>
 
+          {/* Vision model warning */}
+          {!isVision && (
+            <div className="flex-shrink-0 px-3 pt-2">
+              <p className="text-[10px] text-amber-400 bg-amber-500/10 px-2.5 py-1.5 rounded-lg border border-amber-500/20 flex items-center gap-1.5">
+                <ImageIcon className="w-3 h-3 flex-shrink-0" />
+                <span>
+                  <strong>{chat.modelName}</strong> doesn&apos;t support vision — image attachments will be ignored.
+                  Switch to a vision model (🖼️) for screenshot-based generation.
+                </span>
+              </p>
+            </div>
+          )}
+
           {/* Prompt input */}
           <div className="flex-shrink-0 border-t border-border p-3">
             <PromptInput
               onSubmit={handleSend}
               loading={generating}
-              enableImageUpload={true}
               placeholder={
                 messages.length === 0
                   ? "Describe the UI you want…"

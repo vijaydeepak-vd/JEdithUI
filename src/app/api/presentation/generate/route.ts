@@ -17,6 +17,7 @@ const GenerateSlidesSchema = z.object({
   ),
   slideTheme: z.string().default("business"),
   existingMarkdown: z.string().optional(),
+  fileContext: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -25,11 +26,14 @@ export async function POST(req: NextRequest) {
   if (!parsed.success)
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  const { prompt, model, palette, slideTheme, existingMarkdown } = parsed.data;
+  const { prompt, model, palette, slideTheme, existingMarkdown, fileContext } = parsed.data;
+
+  // Prepend file context to the prompt so the AI sees attached file contents
+  const enrichedPrompt = fileContext ? `${fileContext}${prompt}` : prompt;
 
   try {
     const result = await generateSlides({
-      prompt,
+      prompt: enrichedPrompt,
       model,
       palette: palette as PaletteColor[],
       slideTheme: slideTheme as SlideTheme,

@@ -34,7 +34,10 @@ export async function postProcess(
   let formattedCode = code;
   try {
     const prettier = await import("prettier");
-    const parser = language.includes("html") ? "html" : "babel-ts";
+    const parserMap: Record<string, string> = {
+      html: "html", vue: "vue", svelte: "html", ts: "babel-ts", tsx: "babel-ts",
+    };
+    const parser = parserMap[language] ?? "babel-ts";
     formattedCode = await prettier.format(code, {
       parser,
       semi: true,

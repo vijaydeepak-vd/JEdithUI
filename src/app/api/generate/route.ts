@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateCode } from "@/lib/ai/generate-code";
+import { isVisionModel } from "@/lib/ollama";
 import { z } from "zod";
 import type { UILibrary, Framework, PaletteColor } from "@/types";
 
@@ -20,6 +21,7 @@ const GenerateSchema = z.object({
   framework: z.enum(["REACT", "VUE", "SVELTE", "ANGULAR", "HTML"]).default("REACT"),
   existingCode: z.string().optional(),
   imageBase64: z.string().optional(),
+  fileContext: z.string().optional(),
 });
 
 export async function POST(req: NextRequest) {
@@ -28,24 +30,37 @@ export async function POST(req: NextRequest) {
   if (!parsed.success)
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  const { prompt, model, palette, libraries, framework, existingCode, imageBase64 } =
+  const { prompt, model, palette, libraries, framework, existingCode, imageBase64, fileContext } =
     parsed.data;
+
+  // Vision model check — strip image if model can't process it
+  const extraWarnings: string[] = [];
+  let effectiveImage = imageBase64;
+  if (imageBase64 && !isVisionModel(model)) {
+    effectiveImage = undefined;
+    extraWarnings.push(
+      `Model "${model}" does not support vision. The attached image was ignored. Switch to a vision model (e.g. gemma4) for screenshot-based generation.`
+    );
+  }
+
+  // Prepend file context to the prompt so the AI sees attached file contents
+  const enrichedPrompt = fileContext ? `${fileContext}${prompt}` : prompt;
 
   try {
     const result = await generateCode({
-      prompt,
+      prompt: enrichedPrompt,
       model,
       palette: palette as PaletteColor[],
       libraries: libraries as UILibrary[],
       framework: framework as Framework,
       existingCode,
-      imageBase64,
+      imageBase64: effectiveImage,
     });
 
     return NextResponse.json({
       code: result.code,
       language: result.language,
-      warnings: result.warnings,
+      warnings: [...extraWarnings, ...result.warnings],
     });
   } catch (error) {
     return NextResponse.json(

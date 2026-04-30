@@ -103,7 +103,7 @@ export async function chat(
       model,
       messages,
       stream: false,
-      options: { temperature: 0.7, num_predict: 4096 },
+      options: { temperature: 0.7, num_predict: 8192 },
     }),
   });
 
@@ -146,6 +146,12 @@ export async function analyzeImage(
     { role: "user", content: prompt, images: [imageBase64] },
   ]);
   return response.message.content;
+}
+
+/** Check if a model name likely supports vision (image) inputs. */
+export function isVisionModel(modelName: string): boolean {
+  const lower = modelName.toLowerCase();
+  return VISION_FAMILIES.some((f) => lower.includes(f));
 }
 
 // ─── Model Classification ──────────────────────────

@@ -82,12 +82,37 @@ function getLibraryThemingInstructions(
         `- Use ConfigProvider: <ConfigProvider theme={{ token: { colorPrimary: '${colorMap.primary || "#344620"}', colorBgContainer: '${colorMap.surface || "#ffffff"}' } }}>`,
         "",
       ];
+    case "chakra":
+      return [
+        "### Chakra UI",
+        `- Import from: import { Box, Button, Text } from "@chakra-ui/react"`,
+        `- Extend theme: extendTheme({ colors: { brand: { 500: '${colorMap.primary || "#344620"}' } } })`,
+        `- Wrap with: <ChakraProvider theme={theme}>`,
+        `- Use brand colors: colorScheme="brand" or color="${colorMap.accent || "#d57a2a"}"`,
+        "",
+      ];
+    case "mantine":
+      return [
+        "### Mantine",
+        `- Import from: import { Button, Card, TextInput } from "@mantine/core"`,
+        `- Use MantineProvider: <MantineProvider theme={{ primaryColor: 'brand', colors: { brand: ['${colorMap.primary || "#344620"}'] } }}>`,
+        `- Override with: style={{ backgroundColor: '${colorMap.primary || "#344620"}' }}`,
+        "",
+      ];
     case "recharts":
       return [
         "### Recharts",
         `- Import from: import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"`,
         `- Use palette colors for fills: <Bar fill="${colorMap.primary || "#344620"}" />`,
         `- Accent for highlights: <Bar fill="${colorMap.accent || "#d57a2a"}" />`,
+        "",
+      ];
+    case "react-table":
+      return [
+        "### TanStack Table",
+        `- Import from: import { useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table"`,
+        `- Style headers with: style={{ backgroundColor: '${colorMap.primary || "#344620"}', color: '${colorMap.text || "#ffffff"}' }}`,
+        `- Alternating rows: even rows use '${colorMap.surface || "#f5f5f5"}'`,
         "",
       ];
     default:

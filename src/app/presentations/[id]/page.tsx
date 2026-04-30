@@ -7,10 +7,12 @@ import Link from "next/link";
 import { useChatThread, useChatMessages } from "@/hooks/useChat";
 import { db, generateId, nowISO } from "@/lib/db-client";
 import { PromptInput } from "@/components/generator/PromptInput";
+import { InlineModelSelector } from "@/components/generator/InlineModelSelector";
 import { SlidePreview } from "@/components/chat/SlidePreview";
 import { SlideFilmstrip } from "@/components/chat/SlideFilmstrip";
 import { timeAgo, generateChatName } from "@/lib/utils";
-import type { PaletteColor, SlideTheme } from "@/types";
+import { buildFileContext } from "@/lib/file-reader";
+import type { PaletteColor, SlideTheme, AttachedFile } from "@/types";
 
 export default function PresentationChatPage({
   params,
@@ -52,9 +54,12 @@ export default function PresentationChatPage({
   const palette: PaletteColor[] = chat?.palette?.colors ?? [];
   const slideTheme: SlideTheme = (chat?.slideTheme as SlideTheme) ?? "default";
 
-  const handleSend = async (prompt: string) => {
+  const handleSend = async (prompt: string, attachments?: AttachedFile[]) => {
     if (!chat) return;
     setGenerating(true);
+
+    // Process attachments: extract file context for text-based files
+    const fileContext = attachments ? buildFileContext(attachments) : undefined;
 
     // Auto-name the chat
     if (chat.name === "Untitled Chat" || chat.name === "Untitled Presentation") {
@@ -92,6 +97,7 @@ export default function PresentationChatPage({
           palette: palette.map((c) => ({ hex: c.hex, role: c.role, order: c.order ?? 0 })),
           slideTheme,
           existingMarkdown,
+          fileContext,
         }),
       });
 
@@ -150,6 +156,13 @@ export default function PresentationChatPage({
     } finally {
       setGenerating(false);
     }
+  };
+
+  // ── Switch model mid-chat ──
+  const handleModelChange = async (newModel: string) => {
+    if (!chat || newModel === chat.modelName) return;
+    await db.chats.update(id, { modelName: newModel, updatedAt: nowISO() });
+    refreshChat();
   };
 
   // Latest slide version
@@ -226,8 +239,13 @@ export default function PresentationChatPage({
         </Link>
         <div className="flex-1 min-w-0">
           <h1 className="font-semibold truncate">{chat.name}</h1>
-          <p className="text-[11px] text-muted-foreground">
-            {chat.palette?.name} · {slideTheme} theme · {chat.modelName}
+          <p className="text-[11px] text-muted-foreground flex items-center gap-1 flex-wrap">
+            <span>{chat.palette?.name} · {slideTheme} theme ·</span>
+            <InlineModelSelector
+              value={chat.modelName}
+              onChange={handleModelChange}
+              disabled={generating}
+            />
           </p>
         </div>
 

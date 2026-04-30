@@ -4,12 +4,12 @@ import { useState, useRef, useEffect } from "react";
 import { MessageBubble } from "./MessageBubble";
 import { PromptInput } from "@/components/generator/PromptInput";
 import { VersionTimeline } from "./VersionTimeline";
-import type { MessageData, ChatData, PaletteColor, Framework, UILibrary } from "@/types";
+import type { MessageData, ChatData, PaletteColor, Framework, UILibrary, AttachedFile } from "@/types";
 
 interface ChatThreadProps {
   chat: ChatData;
   messages: MessageData[];
-  onSendMessage: (prompt: string) => Promise<void>;
+  onSendMessage: (prompt: string, attachments?: AttachedFile[]) => Promise<void>;
   generating?: boolean;
 }
 

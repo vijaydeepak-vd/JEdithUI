@@ -1,4 +1,8 @@
-import type { LibraryConfig, UILibrary } from "@/types";
+import type { LibraryConfig, UILibrary, Framework } from "@/types";
+
+/** All frameworks — used for universal libraries like Tailwind. */
+const ALL_FRAMEWORKS: Framework[] = ["REACT", "HTML", "VUE", "SVELTE", "ANGULAR"];
+const REACT_ONLY: Framework[] = ["REACT"];
 
 export const LIBRARY_CONFIGS: Record<UILibrary, LibraryConfig> = {
   tailwind: {
@@ -21,6 +25,7 @@ export const LIBRARY_CONFIGS: Record<UILibrary, LibraryConfig> = {
       Input: "input with border and focus classes",
       Badge: "span with px-2 py-1 rounded",
     },
+    frameworks: ALL_FRAMEWORKS,
   },
 
   shadcn: {
@@ -47,6 +52,7 @@ Convert palette hex to HSL values and inject them.`,
       Badge: "Badge",
       Select: "Select + SelectTrigger + SelectContent",
     },
+    frameworks: REACT_ONLY,
   },
 
   mui: {
@@ -80,6 +86,7 @@ Wrap the component in <ThemeProvider theme={theme}>.`,
       Select: "Select + MenuItem",
       Table: "Table + TableHead + TableBody + TableRow + TableCell",
     },
+    frameworks: REACT_ONLY,
   },
 
   antd: {
@@ -106,6 +113,7 @@ import { ConfigProvider } from 'antd';`,
       Badge: "Badge",
       Form: "Form + Form.Item",
     },
+    frameworks: REACT_ONLY,
   },
 
   chakra: {
@@ -134,6 +142,7 @@ Wrap in <ChakraProvider theme={theme}>.`,
       Flex: "Flex",
       Text: "Text",
     },
+    frameworks: REACT_ONLY,
   },
 
   mantine: {
@@ -158,6 +167,7 @@ import { MantineProvider } from '@mantine/core';`,
       Badge: "Badge",
       Select: "Select",
     },
+    frameworks: REACT_ONLY,
   },
 
   recharts: {
@@ -183,6 +193,7 @@ import { MantineProvider } from '@mantine/core';`,
       PieChart: "PieChart + Pie + Cell",
       AreaChart: "AreaChart + Area",
     },
+    frameworks: REACT_ONLY,
   },
 
   "react-table": {
@@ -205,6 +216,7 @@ Use Tailwind or inline styles with palette colors for:
     componentMap: {
       Table: "useReactTable + flexRender",
     },
+    frameworks: REACT_ONLY,
   },
 };
 
@@ -214,6 +226,13 @@ export function getLibraryConfig(lib: UILibrary): LibraryConfig {
 
 export function getLibraryConfigs(libs: UILibrary[]): LibraryConfig[] {
   return libs.map((l) => LIBRARY_CONFIGS[l]).filter(Boolean);
+}
+
+/** Get all libraries compatible with a given framework. */
+export function getCompatibleLibraries(framework: Framework): UILibrary[] {
+  return (Object.values(LIBRARY_CONFIGS) as LibraryConfig[])
+    .filter((c) => c.frameworks.length === 0 || c.frameworks.includes(framework))
+    .map((c) => c.id);
 }
 
 export function buildLibraryPromptContext(libs: UILibrary[]): string {

@@ -1,7 +1,8 @@
 "use client";
 
 import { cn } from "@/lib/utils";
-import type { UILibrary } from "@/types";
+import { LIBRARY_CONFIGS } from "@/lib/ai/library-configs";
+import type { UILibrary, Framework } from "@/types";
 
 const LIBRARIES: { value: UILibrary; label: string; desc: string }[] = [
   { value: "tailwind", label: "Tailwind CSS", desc: "Layout & custom styling" },
@@ -19,6 +20,14 @@ interface LibrarySelectorProps {
   onChange: (libs: UILibrary[]) => void;
   primary?: UILibrary;
   onPrimaryChange?: (lib: UILibrary) => void;
+  /** When provided, only compatible libraries are enabled. */
+  framework?: Framework;
+}
+
+function isCompatible(lib: UILibrary, framework?: Framework): boolean {
+  if (!framework) return true;
+  const config = LIBRARY_CONFIGS[lib];
+  return config.frameworks.includes(framework);
 }
 
 export function LibrarySelector({
@@ -26,18 +35,19 @@ export function LibrarySelector({
   onChange,
   primary,
   onPrimaryChange,
+  framework,
 }: LibrarySelectorProps) {
   const toggle = (lib: UILibrary) => {
+    if (!isCompatible(lib, framework)) return;
+
     if (selected.includes(lib)) {
       const next = selected.filter((l) => l !== lib);
       onChange(next);
-      // If removing the primary, clear it
       if (lib === primary && onPrimaryChange && next.length > 0) {
         onPrimaryChange(next[0]);
       }
     } else {
       onChange([...selected, lib]);
-      // Auto-set primary if none selected yet
       if (!primary && onPrimaryChange) onPrimaryChange(lib);
     }
   };
@@ -46,22 +56,30 @@ export function LibrarySelector({
     <div className="space-y-2">
       <div className="flex flex-wrap gap-2">
         {LIBRARIES.map(({ value, label, desc }) => {
+          const compatible = isCompatible(value, framework);
           const isSelected = selected.includes(value);
           const isPrimary = value === primary;
           return (
             <button
               key={value}
               onClick={() => toggle(value)}
-              title={desc}
+              disabled={!compatible}
+              title={
+                !compatible
+                  ? `${label} is not compatible with ${framework}`
+                  : desc
+              }
               className={cn(
                 "relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all",
-                isSelected
+                !compatible
+                  ? "border-border/40 text-muted-foreground/30 cursor-not-allowed line-through"
+                  : isSelected
                   ? "border-jedith-forest bg-jedith-forest/10 text-jedith-forest"
                   : "border-border text-muted-foreground hover:border-jedith-forest/50"
               )}
             >
               {label}
-              {isPrimary && (
+              {isPrimary && compatible && (
                 <span className="text-[9px] bg-jedith-copper text-white px-1 rounded-sm leading-tight">
                   primary
                 </span>

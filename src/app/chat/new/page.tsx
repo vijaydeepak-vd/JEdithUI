@@ -11,6 +11,7 @@ import { ThemeSelector } from "@/components/generator/ThemeSelector";
 import { PromptInput } from "@/components/generator/PromptInput";
 import { useChats } from "@/hooks/useChat";
 import { useOllamaModels } from "@/hooks/useOllamaModels";
+import { getCompatibleLibraries } from "@/lib/ai/library-configs";
 import type { Framework, UILibrary } from "@/types";
 
 export default function NewChatPage() {
@@ -31,6 +32,21 @@ export default function NewChatPage() {
   useEffect(() => {
     if (defaultModel && !model) setModel(defaultModel.name);
   }, [defaultModel, model]);
+
+  // Auto-clean incompatible libraries when framework changes
+  useEffect(() => {
+    const compatible = getCompatibleLibraries(framework);
+    const filtered = libraries.filter((l) => compatible.includes(l));
+    // If nothing remains, default to tailwind (universally compatible)
+    const next = filtered.length > 0 ? filtered : compatible.includes("tailwind") ? ["tailwind" as UILibrary] : [];
+    if (next.length !== libraries.length || next.some((l, i) => l !== libraries[i])) {
+      setLibraries(next);
+      if (!next.includes(primaryLib) && next.length > 0) {
+        setPrimaryLib(next[0]);
+      }
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [framework]);
 
   const handleStart = async (prompt: string) => {
     if (!paletteId || !model) return;
@@ -92,6 +108,7 @@ export default function NewChatPage() {
               onChange={setLibraries}
               primary={primaryLib}
               onPrimaryChange={setPrimaryLib}
+              framework={framework}
             />
           </div>
         </section>

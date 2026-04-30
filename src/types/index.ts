@@ -39,6 +39,18 @@ export type UILibrary =
 
 export type ExportFormat = "pptx" | "pdf" | "html";
 
+export type FileCategory = "image" | "text" | "document";
+
+export interface AttachedFile {
+  id: string;
+  name: string;
+  category: FileCategory;
+  size: number;
+  mimeType: string;
+  textContent?: string;  // extracted text (text files, parsed documents)
+  base64?: string;       // base64 data (images, binary documents)
+}
+
 // ─── Ollama Types ────────────────────────────────────
 
 export interface OllamaModel {
@@ -258,4 +270,6 @@ export interface LibraryConfig {
   cdnUrls: string[];
   cdnGlobals?: Record<string, string>;
   componentMap: Record<string, string>;
+  /** Frameworks this library is compatible with. Empty = all. */
+  frameworks: Framework[];
 }
