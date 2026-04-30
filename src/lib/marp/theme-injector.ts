@@ -12,9 +12,9 @@ export function buildMarpTheme(
   const get = (role: string, fallback = "#ffffff") =>
     palette.find((c) => c.role === role)?.hex ?? fallback;
 
-  const primary = get("primary", "#1E2761");
+  const primary = get("primary", "#344620");
   const secondary = get("secondary", "#2a3580");
-  const accent = get("accent", "#F96167");
+  const accent = get("accent", "#d57a2a");
   const background = get("background", "#ffffff");
   const text = get("text", "#1a1a1a");
   const surface = get("surface", "#f8f9fa");

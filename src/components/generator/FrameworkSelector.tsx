@@ -32,9 +32,9 @@ export function FrameworkSelector({ value, onChange }: FrameworkSelectorProps) {
             className={cn(
               "flex items-center gap-1.5 px-3 py-1.5 rounded-lg border text-sm font-medium transition-all",
               value === fw
-                ? "border-jedith-navy bg-jedith-navy text-white"
+                ? "border-jedith-forest bg-jedith-forest text-white"
                 : isPhase1
-                ? "border-border text-muted-foreground hover:border-jedith-navy hover:text-jedith-navy"
+                ? "border-border text-muted-foreground hover:border-jedith-forest hover:text-jedith-forest"
                 : "border-border/50 text-muted-foreground/50 cursor-not-allowed"
             )}
           >

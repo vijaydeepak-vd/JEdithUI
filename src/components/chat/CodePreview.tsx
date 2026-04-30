@@ -71,7 +71,7 @@ export function CodePreview({
       <div className="relative flex-1 min-h-[300px] bg-white rounded-b-xl">
         {loading && (
           <div className="absolute inset-0 flex items-center justify-center bg-white/90 z-10 rounded-b-xl">
-            <RefreshCw className="w-5 h-5 animate-spin text-jedith-navy" />
+            <RefreshCw className="w-5 h-5 animate-spin text-jedith-forest" />
           </div>
         )}
 
@@ -85,7 +85,7 @@ export function CodePreview({
                 {onFixError && (
                   <button
                     onClick={() => onFixError(error)}
-                    className="mt-2 text-xs text-jedith-coral underline hover:no-underline"
+                    className="mt-2 text-xs text-jedith-copper underline hover:no-underline"
                   >
                     Ask AI to fix this error
                   </button>

@@ -22,7 +22,7 @@ export function ExportButtons({ code, onDownload, label = "code" }: ExportButton
     <div className="flex items-center gap-2">
       <button
         onClick={copy}
-        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:border-jedith-navy hover:text-jedith-navy transition-colors"
+        className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:border-jedith-forest hover:text-jedith-forest transition-colors"
       >
         {copied ? (
           <>
@@ -40,7 +40,7 @@ export function ExportButtons({ code, onDownload, label = "code" }: ExportButton
       {onDownload && (
         <button
           onClick={onDownload}
-          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:border-jedith-navy hover:text-jedith-navy transition-colors"
+          className="flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border border-border text-xs font-medium text-muted-foreground hover:border-jedith-forest hover:text-jedith-forest transition-colors"
         >
           <Download className="w-3.5 h-3.5" />
           Download

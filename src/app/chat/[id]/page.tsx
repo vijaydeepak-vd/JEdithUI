@@ -240,7 +240,7 @@ export default function ChatPage({
   if (chatLoading) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin w-6 h-6 border-2 border-jedith-navy border-t-transparent rounded-full" />
+        <div className="animate-spin w-6 h-6 border-2 border-jedith-forest border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -251,7 +251,7 @@ export default function ChatPage({
         <p className="text-muted-foreground">Chat not found</p>
         <Link
           href="/chat"
-          className="text-sm text-jedith-coral hover:underline"
+          className="text-sm text-jedith-copper hover:underline"
         >
           Back to chats
         </Link>
@@ -293,7 +293,7 @@ export default function ChatPage({
             </button>
             <button
               onClick={handleDownload}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-jedith-coral text-white text-xs font-semibold hover:bg-[#e8505a] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-jedith-copper text-white text-xs font-semibold hover:bg-[#aa6122] transition-colors"
             >
               <Download className="w-3.5 h-3.5" />
               .{latestCode.language || "tsx"}
@@ -327,7 +327,7 @@ export default function ChatPage({
                   onClick={() => setActiveTab("preview")}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                     activeTab === "preview"
-                      ? "bg-jedith-navy text-white"
+                      ? "bg-jedith-forest text-white"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   }`}
                 >
@@ -338,7 +338,7 @@ export default function ChatPage({
                   onClick={() => setActiveTab("code")}
                   className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-colors ${
                     activeTab === "code"
-                      ? "bg-jedith-navy text-white"
+                      ? "bg-jedith-forest text-white"
                       : "text-muted-foreground hover:text-foreground hover:bg-muted"
                   }`}
                 >
@@ -406,7 +406,7 @@ export default function ChatPage({
                   <div
                     className={`px-3 py-2.5 rounded-2xl text-sm ${
                       msg.role === "USER"
-                        ? "bg-jedith-navy text-white rounded-tr-sm ml-4"
+                        ? "bg-jedith-forest text-white rounded-tr-sm ml-4"
                         : "bg-secondary/50 border border-border rounded-tl-sm mr-4"
                     }`}
                   >
@@ -454,9 +454,9 @@ export default function ChatPage({
 
             {generating && (
               <div className="flex gap-2 items-center mr-4 px-3 py-2.5 rounded-2xl rounded-tl-sm bg-secondary/50 border border-border w-fit">
-                <span className="w-1.5 h-1.5 rounded-full bg-jedith-coral animate-bounce [animation-delay:0ms]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-jedith-coral animate-bounce [animation-delay:150ms]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-jedith-coral animate-bounce [animation-delay:300ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-jedith-copper animate-bounce [animation-delay:0ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-jedith-copper animate-bounce [animation-delay:150ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-jedith-copper animate-bounce [animation-delay:300ms]" />
               </div>
             )}
 

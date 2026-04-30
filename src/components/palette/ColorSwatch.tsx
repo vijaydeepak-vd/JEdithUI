@@ -41,7 +41,7 @@ export function ColorSwatch({
           className={cn(
             sizeClass,
             "rounded-lg border-2 border-white shadow-sm cursor-pointer transition-transform hover:scale-105",
-            editable && "hover:ring-2 hover:ring-jedith-coral"
+            editable && "hover:ring-2 hover:ring-jedith-copper"
           )}
           style={{ backgroundColor: color.hex }}
           onClick={() => editable && setShowPicker(!showPicker)}

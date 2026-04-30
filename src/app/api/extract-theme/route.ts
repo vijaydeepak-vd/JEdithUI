@@ -13,14 +13,14 @@ Return a JSON array of colors with their semantic roles.
 Rules:
 - Extract 5-10 distinct colors that define the site's visual identity.
 - Assign each color a role: "primary", "secondary", "accent", "background", "text", "surface", "border", "success", "warning", "error", or "info".
-- Use exact hex values (e.g., "#1E2761").
+- Use exact hex values (e.g., "#344620").
 - Order by visual prominence (most dominant first).
 
 Return ONLY valid JSON in this exact format, no other text:
 [
-  { "hex": "#1E2761", "role": "primary", "order": 0 },
-  { "hex": "#CADCFC", "role": "secondary", "order": 1 },
-  { "hex": "#F96167", "role": "accent", "order": 2 }
+  { "hex": "#344620", "role": "primary", "order": 0 },
+  { "hex": "#eaeedd", "role": "secondary", "order": 1 },
+  { "hex": "#d57a2a", "role": "accent", "order": 2 }
 ]`;
 
 export async function POST(req: NextRequest) {

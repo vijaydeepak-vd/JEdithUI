@@ -212,7 +212,7 @@ export default function PresentationChatPage({
   if (!chat) {
     return (
       <div className="flex items-center justify-center h-full">
-        <div className="animate-spin w-6 h-6 border-2 border-jedith-coral border-t-transparent rounded-full" />
+        <div className="animate-spin w-6 h-6 border-2 border-jedith-copper border-t-transparent rounded-full" />
       </div>
     );
   }
@@ -251,7 +251,7 @@ export default function PresentationChatPage({
             <button
               onClick={handleExportPptx}
               disabled={exporting}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-jedith-coral text-white text-xs font-semibold hover:bg-[#e8505a] disabled:opacity-50 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-jedith-copper text-white text-xs font-semibold hover:bg-[#aa6122] disabled:opacity-50 transition-colors"
             >
               {exporting ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />
@@ -325,7 +325,7 @@ export default function PresentationChatPage({
                   <div
                     className={`px-3 py-2.5 rounded-2xl text-sm ${
                       msg.role === "USER"
-                        ? "bg-jedith-navy text-white rounded-tr-sm ml-4"
+                        ? "bg-jedith-forest text-white rounded-tr-sm ml-4"
                         : "bg-secondary/50 border border-border rounded-tl-sm mr-4"
                     }`}
                   >
@@ -353,9 +353,9 @@ export default function PresentationChatPage({
 
             {generating && (
               <div className="flex gap-2 items-center mr-4 px-3 py-2.5 rounded-2xl rounded-tl-sm bg-secondary/50 border border-border w-fit">
-                <span className="w-1.5 h-1.5 rounded-full bg-jedith-coral animate-bounce [animation-delay:0ms]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-jedith-coral animate-bounce [animation-delay:150ms]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-jedith-coral animate-bounce [animation-delay:300ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-jedith-copper animate-bounce [animation-delay:0ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-jedith-copper animate-bounce [animation-delay:150ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-jedith-copper animate-bounce [animation-delay:300ms]" />
               </div>
             )}
 

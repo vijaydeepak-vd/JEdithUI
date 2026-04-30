@@ -17,9 +17,9 @@ export function buildMarpContext(
 \`\`\`css
 <style>
 :root {
-  --color-primary: ${colorMap.primary || "#1E2761"};
-  --color-secondary: ${colorMap.secondary || "#CADCFC"};
-  --color-accent: ${colorMap.accent || "#F96167"};
+  --color-primary: ${colorMap.primary || "#344620"};
+  --color-secondary: ${colorMap.secondary || "#eaeedd"};
+  --color-accent: ${colorMap.accent || "#d57a2a"};
   --color-bg: ${colorMap.background || "#FFFFFF"};
   --color-text: ${colorMap.text || "#363636"};
   --color-surface: ${colorMap.surface || "#F5F5F5"};

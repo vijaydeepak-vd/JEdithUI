@@ -151,13 +151,13 @@ export default function NewPalettePage() {
               value={cssText}
               onChange={(e) => setCssText(e.target.value)}
               rows={10}
-              placeholder=":root {\n  --primary: #1E2761;\n  --accent: #F96167;\n}"
-              className="mt-1 w-full px-3 py-2 rounded-lg border border-border bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-jedith-coral/50"
+              placeholder=":root {\n  --primary: #344620;\n  --accent: #d57a2a;\n}"
+              className="mt-1 w-full px-3 py-2 rounded-lg border border-border bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-jedith-copper/50"
             />
             <button
               onClick={handleParseCss}
               disabled={!cssText.trim() || parsingCss}
-              className="mt-2 px-4 py-2 bg-jedith-navy text-white rounded-lg text-sm font-medium hover:bg-jedith-navy-light disabled:opacity-50 transition-colors"
+              className="mt-2 px-4 py-2 bg-jedith-forest text-white rounded-lg text-sm font-medium hover:bg-jedith-forest-light disabled:opacity-50 transition-colors"
             >
               {parsingCss ? "Parsing…" : "Parse Colors"}
             </button>

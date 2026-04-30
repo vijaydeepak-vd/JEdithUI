@@ -167,9 +167,9 @@ export default function PaletteDetailPage() {
         <div className="grid grid-cols-3 gap-4">
           <Link
             href={`/chat/new?paletteId=${palette.id}`}
-            className="flex items-center justify-center gap-2 p-4 rounded-xl border border-border hover:border-jedith-navy hover:bg-muted/30 transition-all group"
+            className="flex items-center justify-center gap-2 p-4 rounded-xl border border-border hover:border-jedith-forest hover:bg-muted/30 transition-all group"
           >
-            <Code2 className="w-5 h-5 text-jedith-navy group-hover:scale-110 transition-transform" />
+            <Code2 className="w-5 h-5 text-jedith-forest group-hover:scale-110 transition-transform" />
             <div className="text-left">
               <p className="text-sm font-semibold">Generate Code</p>
               <p className="text-xs text-muted-foreground">Open a themed code chat</p>
@@ -178,9 +178,9 @@ export default function PaletteDetailPage() {
 
           <Link
             href={`/presentations/new?paletteId=${palette.id}`}
-            className="flex items-center justify-center gap-2 p-4 rounded-xl border border-border hover:border-jedith-coral hover:bg-muted/30 transition-all group"
+            className="flex items-center justify-center gap-2 p-4 rounded-xl border border-border hover:border-jedith-copper hover:bg-muted/30 transition-all group"
           >
-            <Presentation className="w-5 h-5 text-jedith-coral group-hover:scale-110 transition-transform" />
+            <Presentation className="w-5 h-5 text-jedith-copper group-hover:scale-110 transition-transform" />
             <div className="text-left">
               <p className="text-sm font-semibold">Generate Slides</p>
               <p className="text-xs text-muted-foreground">Create a Marp presentation</p>

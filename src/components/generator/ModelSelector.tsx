@@ -53,7 +53,7 @@ export function ModelSelector({ value, onChange, visionOnly = false, className }
       value={value || displayModels[0]?.name}
       onChange={(e) => onChange(e.target.value)}
       className={cn(
-        "px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-jedith-coral/50",
+        "px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-jedith-copper/50",
         className
       )}
     >

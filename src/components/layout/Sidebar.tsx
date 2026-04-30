@@ -29,7 +29,7 @@ export function Sidebar() {
       {/* Logo area */}
       <div className="px-5 pt-6 pb-5">
         <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg bg-jedith-coral flex items-center justify-center shadow-lg flex-shrink-0 group-hover:scale-105 transition-transform">
+          <div className="w-8 h-8 rounded-lg bg-jedith-copper flex items-center justify-center shadow-lg flex-shrink-0 group-hover:scale-105 transition-transform">
             <Sparkles className="w-4 h-4 text-white" />
           </div>
           <div>
@@ -70,14 +70,14 @@ export function Sidebar() {
               <span
                 className={cn(
                   "flex-shrink-0 w-4 h-4 transition-colors",
-                  active ? "text-jedith-coral" : "text-white/40"
+                  active ? "text-jedith-copper" : "text-white/40"
                 )}
               >
                 <Icon className="w-full h-full" />
               </span>
               {label}
               {active && (
-                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-jedith-coral" />
+                <span className="ml-auto w-1.5 h-1.5 rounded-full bg-jedith-copper" />
               )}
             </Link>
           );

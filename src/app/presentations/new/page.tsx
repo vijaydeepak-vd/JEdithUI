@@ -71,7 +71,7 @@ export default function NewPresentationPage() {
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Q3 Analytics Pitch Deck"
-            className="mt-2 w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-jedith-coral/40 focus:border-jedith-coral transition-colors"
+            className="mt-2 w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-jedith-copper/40 focus:border-jedith-copper transition-colors"
           />
           <p className="mt-1 text-[11px] text-muted-foreground">
             Leave blank to auto-generate from your first prompt

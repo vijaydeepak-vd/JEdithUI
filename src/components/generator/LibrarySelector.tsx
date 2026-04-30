@@ -56,13 +56,13 @@ export function LibrarySelector({
               className={cn(
                 "relative flex items-center gap-1.5 px-2.5 py-1.5 rounded-lg border text-xs font-medium transition-all",
                 isSelected
-                  ? "border-jedith-navy bg-jedith-navy/10 text-jedith-navy"
-                  : "border-border text-muted-foreground hover:border-jedith-navy/50"
+                  ? "border-jedith-forest bg-jedith-forest/10 text-jedith-forest"
+                  : "border-border text-muted-foreground hover:border-jedith-forest/50"
               )}
             >
               {label}
               {isPrimary && (
-                <span className="text-[9px] bg-jedith-coral text-white px-1 rounded-sm leading-tight">
+                <span className="text-[9px] bg-jedith-copper text-white px-1 rounded-sm leading-tight">
                   primary
                 </span>
               )}

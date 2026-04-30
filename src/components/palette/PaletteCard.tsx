@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Trash2, Code2, Presentation, ArrowUpRight } from "lucide-react";
+import { Trash2, Code2, Presentation, ArrowUpRight, Sparkles } from "lucide-react";
 import { timeAgo } from "@/lib/utils";
 import type { PaletteData } from "@/types";
 
@@ -10,6 +10,7 @@ interface PaletteCardProps {
   onDelete?: () => void;
   onCodeClick?: () => void;
   onSlidesClick?: () => void;
+  onSkillClick?: () => void;
 }
 
 const SOURCE_LABELS: Record<string, string> = {
@@ -23,6 +24,7 @@ export function PaletteCard({
   onDelete,
   onCodeClick,
   onSlidesClick,
+  onSkillClick,
 }: PaletteCardProps) {
   return (
     <div className="group relative bg-card border border-border rounded-2xl overflow-hidden card-hover shadow-sm">
@@ -43,7 +45,7 @@ export function PaletteCard({
           <div className="min-w-0 flex-1">
             <Link
               href={`/palettes/${palette.id}`}
-              className="group/link flex items-center gap-1 font-semibold text-sm text-foreground hover:text-jedith-coral transition-colors"
+              className="group/link flex items-center gap-1 font-semibold text-sm text-foreground hover:text-jedith-copper transition-colors"
             >
               <span className="truncate">{palette.name}</span>
               <ArrowUpRight className="w-3 h-3 opacity-0 group-hover/link:opacity-100 flex-shrink-0 transition-opacity" />
@@ -90,17 +92,24 @@ export function PaletteCard({
         <div className="flex gap-2">
           <button
             onClick={onCodeClick}
-            className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2 px-3 rounded-xl bg-jedith-navy text-white hover:bg-jedith-navy-light active:scale-95 transition-all"
+            className="flex-1 flex items-center justify-center gap-1.5 text-xs font-semibold py-2 px-3 rounded-xl bg-jedith-forest text-white hover:bg-jedith-forest-light active:scale-95 transition-all"
           >
             <Code2 className="w-3.5 h-3.5" />
             Generate Code
           </button>
           <button
             onClick={onSlidesClick}
-            className="flex items-center justify-center gap-1.5 text-xs font-semibold py-2 px-3 rounded-xl border border-border text-muted-foreground hover:border-jedith-coral hover:text-jedith-coral active:scale-95 transition-all"
+            className="flex items-center justify-center gap-1.5 text-xs font-semibold py-2 px-3 rounded-xl border border-border text-muted-foreground hover:border-jedith-copper hover:text-jedith-copper active:scale-95 transition-all"
             title="Generate Slides"
           >
             <Presentation className="w-3.5 h-3.5" />
+          </button>
+          <button
+            onClick={onSkillClick}
+            className="flex items-center justify-center gap-1.5 text-xs font-semibold py-2 px-3 rounded-xl border border-purple-500/50 text-purple-400 hover:border-purple-400 hover:text-purple-300 hover:bg-purple-500/10 active:scale-95 transition-all"
+            title="Download as Claude Skill"
+          >
+            <Sparkles className="w-3.5 h-3.5" />
           </button>
         </div>
       </div>

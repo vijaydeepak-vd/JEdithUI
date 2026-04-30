@@ -71,14 +71,14 @@ export function ChatThread({
 
         {generating && (
           <div className="flex gap-3 items-start">
-            <div className="w-7 h-7 rounded-full bg-jedith-navy flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
+            <div className="w-7 h-7 rounded-full bg-jedith-forest flex items-center justify-center text-white text-xs font-bold flex-shrink-0">
               J
             </div>
             <div className="px-4 py-3 rounded-2xl rounded-tl-sm bg-card border border-border">
               <div className="flex gap-1.5 items-center">
-                <span className="w-1.5 h-1.5 rounded-full bg-jedith-coral animate-bounce [animation-delay:0ms]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-jedith-coral animate-bounce [animation-delay:150ms]" />
-                <span className="w-1.5 h-1.5 rounded-full bg-jedith-coral animate-bounce [animation-delay:300ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-jedith-copper animate-bounce [animation-delay:0ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-jedith-copper animate-bounce [animation-delay:150ms]" />
+                <span className="w-1.5 h-1.5 rounded-full bg-jedith-copper animate-bounce [animation-delay:300ms]" />
               </div>
             </div>
           </div>

@@ -60,7 +60,7 @@ export default function SwaggerPage() {
     <div className="p-6 max-w-5xl mx-auto space-y-6">
       <div>
         <h1 className="text-2xl font-bold flex items-center gap-2">
-          <FileCode2 className="w-6 h-6 text-jedith-coral" />
+          <FileCode2 className="w-6 h-6 text-jedith-copper" />
           Swagger / OpenAPI Import
         </h1>
         <p className="text-sm text-muted-foreground mt-1">
@@ -89,13 +89,13 @@ export default function SwaggerPage() {
           onChange={(e) => setSpecText(e.target.value)}
           rows={12}
           placeholder={`Paste your OpenAPI/Swagger spec here:\n\n{\n  "openapi": "3.0.0",\n  "info": { "title": "My API", "version": "1.0.0" },\n  "paths": { ... }\n}`}
-          className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-jedith-coral/50"
+          className="w-full px-3 py-2 rounded-lg border border-border bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-jedith-copper/50"
         />
 
         <button
           onClick={handleParse}
           disabled={!specText.trim() || parsing}
-          className="flex items-center gap-2 px-4 py-2 bg-jedith-navy text-white rounded-lg text-sm font-medium hover:bg-jedith-navy-light disabled:opacity-50 transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-jedith-forest text-white rounded-lg text-sm font-medium hover:bg-jedith-forest-light disabled:opacity-50 transition-colors"
         >
           {parsing ? <Loader2 className="w-4 h-4 animate-spin" /> : <FileCode2 className="w-4 h-4" />}
           {parsing ? "Parsing…" : "Parse Spec"}
@@ -124,7 +124,7 @@ export default function SwaggerPage() {
             {result.endpoints.map((ep, idx) => (
               <div
                 key={idx}
-                className="flex items-center gap-4 p-4 rounded-xl border border-border hover:border-jedith-navy/50 hover:bg-muted/30 transition-all group"
+                className="flex items-center gap-4 p-4 rounded-xl border border-border hover:border-jedith-forest/50 hover:bg-muted/30 transition-all group"
               >
                 <span
                   className={`px-2 py-0.5 rounded text-xs font-bold font-mono flex-shrink-0 ${
@@ -148,7 +148,7 @@ export default function SwaggerPage() {
 
                 <button
                   onClick={() => generateForEndpoint(idx)}
-                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-jedith-navy text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
+                  className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-jedith-forest text-white text-xs font-medium opacity-0 group-hover:opacity-100 transition-opacity flex-shrink-0"
                 >
                   Generate UI
                   <ChevronRight className="w-3.5 h-3.5" />

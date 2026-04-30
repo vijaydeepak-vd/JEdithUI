@@ -3,27 +3,27 @@
 @tailwind utilities;
 
 @layer base {
-  /* ── Dark theme is the permanent default ─────────────── */
+  /* ── Dark theme — earthy forest tones ────────────────── */
   :root {
-    --background: 224 35% 7%;
-    --foreground: 213 30% 92%;
-    --card: 224 30% 10%;
-    --card-foreground: 213 30% 92%;
-    --popover: 224 30% 10%;
-    --popover-foreground: 213 30% 92%;
-    --primary: 213 30% 92%;
-    --primary-foreground: 224 35% 7%;
-    --secondary: 224 25% 14%;
-    --secondary-foreground: 213 30% 92%;
-    --muted: 224 25% 14%;
-    --muted-foreground: 215 16% 52%;
-    --accent: 224 25% 14%;
-    --accent-foreground: 213 30% 92%;
+    --background: 90 38% 7%;
+    --foreground: 75 30% 90%;
+    --card: 90 35% 10%;
+    --card-foreground: 75 30% 90%;
+    --popover: 90 35% 10%;
+    --popover-foreground: 75 30% 90%;
+    --primary: 75 30% 90%;
+    --primary-foreground: 90 38% 7%;
+    --secondary: 90 25% 14%;
+    --secondary-foreground: 75 30% 90%;
+    --muted: 90 25% 14%;
+    --muted-foreground: 80 12% 50%;
+    --accent: 90 25% 14%;
+    --accent-foreground: 75 30% 90%;
     --destructive: 0 65% 55%;
     --destructive-foreground: 0 0% 100%;
-    --border: 224 22% 16%;
-    --input: 224 22% 16%;
-    --ring: 213 30% 75%;
+    --border: 90 20% 16%;
+    --input: 90 20% 16%;
+    --ring: 75 30% 70%;
     --radius: 0.75rem;
   }
 }
@@ -56,9 +56,9 @@
 }
 
 @layer utilities {
-  /* Sidebar gradient — deep navy */
+  /* Sidebar gradient — deep forest */
   .sidebar-gradient {
-    background: linear-gradient(160deg, #171f52 0%, #12193f 50%, #0e1535 100%);
+    background: linear-gradient(160deg, #1a2310 0%, #15180c 50%, #12190b 100%);
   }
 
   /* Subtle card hover lift */
@@ -76,8 +76,8 @@
     min-width: 0;
   }
 
-  /* Coral glow */
-  .coral-glow {
-    box-shadow: 0 0 16px rgba(249, 97, 103, 0.4);
+  /* Copper glow */
+  .copper-glow {
+    box-shadow: 0 0 16px rgba(213, 122, 42, 0.4);
   }
 }

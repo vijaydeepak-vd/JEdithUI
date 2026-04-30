@@ -34,8 +34,8 @@ export function VersionTimeline({
           className={cn(
             "flex items-center justify-center w-6 h-6 rounded-full text-[10px] font-bold transition-all",
             v.version === currentVersion
-              ? "bg-jedith-navy text-white shadow-sm"
-              : "bg-background border border-border text-muted-foreground hover:border-jedith-coral hover:text-jedith-coral"
+              ? "bg-jedith-forest text-white shadow-sm"
+              : "bg-background border border-border text-muted-foreground hover:border-jedith-copper hover:text-jedith-copper"
           )}
         >
           {v.version}

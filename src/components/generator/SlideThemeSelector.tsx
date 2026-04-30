@@ -20,8 +20,8 @@ interface SlideThemeSelectorProps {
 }
 
 export function SlideThemeSelector({ value, onChange, palette }: SlideThemeSelectorProps) {
-  const primaryColor = palette?.find((c) => c.role === "primary")?.hex || "#1E2761";
-  const accentColor = palette?.find((c) => c.role === "accent")?.hex || "#F96167";
+  const primaryColor = palette?.find((c) => c.role === "primary")?.hex || "#344620";
+  const accentColor = palette?.find((c) => c.role === "accent")?.hex || "#d57a2a";
   const bgColor = palette?.find((c) => c.role === "background")?.hex || "#FFFFFF";
 
   return (
@@ -33,8 +33,8 @@ export function SlideThemeSelector({ value, onChange, palette }: SlideThemeSelec
           className={cn(
             "relative p-3 rounded-xl border text-left transition-all hover:shadow-md",
             value === theme.id
-              ? "border-jedith-coral shadow-md ring-1 ring-jedith-coral"
-              : "border-border hover:border-jedith-navy/50"
+              ? "border-jedith-copper shadow-md ring-1 ring-jedith-copper"
+              : "border-border hover:border-jedith-forest/50"
           )}
         >
           {/* Mini slide preview using palette colors */}
@@ -58,7 +58,7 @@ export function SlideThemeSelector({ value, onChange, palette }: SlideThemeSelec
           <p className="text-[10px] text-muted-foreground mt-0.5">{theme.desc}</p>
 
           {value === theme.id && (
-            <span className="absolute top-1.5 right-1.5 text-jedith-coral text-xs">✓</span>
+            <span className="absolute top-1.5 right-1.5 text-jedith-copper text-xs">✓</span>
           )}
         </button>
       ))}

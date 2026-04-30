@@ -55,8 +55,8 @@ function getLibraryThemingInstructions(
       return [
         "### Tailwind CSS",
         `- Use inline styles or CSS variables for palette colors since they are custom.`,
-        `- Style with: style={{ backgroundColor: '${colorMap.primary || "#1E2761"}' }}`,
-        `- Or use Tailwind's arbitrary values: className="bg-[${colorMap.primary || "#1E2761"}]"`,
+        `- Style with: style={{ backgroundColor: '${colorMap.primary || "#344620"}' }}`,
+        `- Or use Tailwind's arbitrary values: className="bg-[${colorMap.primary || "#344620"}]"`,
         "",
       ];
     case "shadcn":
@@ -64,14 +64,14 @@ function getLibraryThemingInstructions(
         "### shadcn/ui",
         `- Import from: import { Button } from "@/components/ui/button"`,
         `- Use variant="default" for primary actions (maps to --primary CSS var)`,
-        `- Override with style prop for palette colors: style={{ backgroundColor: '${colorMap.accent || "#F96167"}' }}`,
+        `- Override with style prop for palette colors: style={{ backgroundColor: '${colorMap.accent || "#d57a2a"}' }}`,
         "",
       ];
     case "mui":
       return [
         "### Material UI (MUI)",
         `- Import from: import { Button, Box } from "@mui/material"`,
-        `- Create theme: const theme = createTheme({ palette: { primary: { main: '${colorMap.primary || "#1E2761"}' }, secondary: { main: '${colorMap.secondary || "#CADCFC"}' } } })`,
+        `- Create theme: const theme = createTheme({ palette: { primary: { main: '${colorMap.primary || "#344620"}' }, secondary: { main: '${colorMap.secondary || "#eaeedd"}' } } })`,
         `- Wrap with: <ThemeProvider theme={theme}>`,
         "",
       ];
@@ -79,15 +79,15 @@ function getLibraryThemingInstructions(
       return [
         "### Ant Design",
         `- Import from: import { Button, Table } from "antd"`,
-        `- Use ConfigProvider: <ConfigProvider theme={{ token: { colorPrimary: '${colorMap.primary || "#1E2761"}', colorBgContainer: '${colorMap.surface || "#ffffff"}' } }}>`,
+        `- Use ConfigProvider: <ConfigProvider theme={{ token: { colorPrimary: '${colorMap.primary || "#344620"}', colorBgContainer: '${colorMap.surface || "#ffffff"}' } }}>`,
         "",
       ];
     case "recharts":
       return [
         "### Recharts",
         `- Import from: import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"`,
-        `- Use palette colors for fills: <Bar fill="${colorMap.primary || "#1E2761"}" />`,
-        `- Accent for highlights: <Bar fill="${colorMap.accent || "#F96167"}" />`,
+        `- Use palette colors for fills: <Bar fill="${colorMap.primary || "#344620"}" />`,
+        `- Accent for highlights: <Bar fill="${colorMap.accent || "#d57a2a"}" />`,
         "",
       ];
     default:

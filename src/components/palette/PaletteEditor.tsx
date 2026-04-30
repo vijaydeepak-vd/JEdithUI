@@ -27,9 +27,9 @@ export function PaletteEditor({
     initialColors.length > 0
       ? initialColors
       : [
-          { hex: "#1E2761", role: "primary", order: 0 },
-          { hex: "#CADCFC", role: "secondary", order: 1 },
-          { hex: "#F96167", role: "accent", order: 2 },
+          { hex: "#344620", role: "primary", order: 0 },
+          { hex: "#eaeedd", role: "secondary", order: 1 },
+          { hex: "#d57a2a", role: "accent", order: 2 },
           { hex: "#FFFFFF", role: "background", order: 3 },
           { hex: "#363636", role: "text", order: 4 },
         ]
@@ -70,7 +70,7 @@ export function PaletteEditor({
           value={name}
           onChange={(e) => setName(e.target.value)}
           placeholder="e.g. Brand Colors, Dark Theme…"
-          className="mt-1 w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-jedith-coral/50"
+          className="mt-1 w-full px-3 py-2 rounded-lg border border-border bg-background text-sm focus:outline-none focus:ring-2 focus:ring-jedith-copper/50"
         />
       </div>
 
@@ -95,7 +95,7 @@ export function PaletteEditor({
           {colors.length < 12 && (
             <button
               onClick={addColor}
-              className="w-16 h-16 rounded-lg border-2 border-dashed border-border hover:border-jedith-coral text-muted-foreground hover:text-jedith-coral transition-colors flex items-center justify-center"
+              className="w-16 h-16 rounded-lg border-2 border-dashed border-border hover:border-jedith-copper text-muted-foreground hover:text-jedith-copper transition-colors flex items-center justify-center"
             >
               <Plus className="w-5 h-5" />
             </button>
@@ -107,7 +107,7 @@ export function PaletteEditor({
       <button
         onClick={handleSave}
         disabled={saving || !name.trim() || colors.length === 0}
-        className="flex items-center gap-2 px-4 py-2 bg-jedith-navy text-white rounded-lg text-sm font-medium hover:bg-jedith-navy-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+        className="flex items-center gap-2 px-4 py-2 bg-jedith-forest text-white rounded-lg text-sm font-medium hover:bg-jedith-forest-light disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
       >
         <Save className="w-4 h-4" />
         {saving ? "Saving…" : "Save Palette"}

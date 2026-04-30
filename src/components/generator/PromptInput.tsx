@@ -133,7 +133,7 @@ export function PromptInput({
         <button
           onClick={handleSubmit}
           disabled={(!value.trim() && !imageBase64) || loading}
-          className="flex-shrink-0 w-8 h-8 rounded-lg bg-jedith-navy text-white flex items-center justify-center hover:bg-jedith-navy-light disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
+          className="flex-shrink-0 w-8 h-8 rounded-lg bg-jedith-forest text-white flex items-center justify-center hover:bg-jedith-forest-light disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? (
             <Loader2 className="w-4 h-4 animate-spin" />

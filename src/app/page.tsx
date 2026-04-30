@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
@@ -13,6 +14,7 @@ import {
   Clock,
 } from "lucide-react";
 import { PaletteCard } from "@/components/palette/PaletteCard";
+import { SkillNameModal } from "@/components/ui/SkillNameModal";
 import { usePalettes } from "@/hooks/usePalettes";
 import { useChats } from "@/hooks/useChat";
 import { timeAgo } from "@/lib/utils";
@@ -24,12 +26,49 @@ export default function Dashboard() {
   const { chats: codeChats, isLoading: loadingChats } = useChats("CODE");
   const { chats: presentationChats } = useChats("PRESENTATION");
 
+  const [skillModalOpen, setSkillModalOpen] = useState(false);
+  const [skillPalette, setSkillPalette] = useState<PaletteData | null>(null);
+
   const handlePaletteCode = (palette: PaletteData) => {
     router.push(`/chat/new?paletteId=${palette.id}`);
   };
 
   const handlePaletteSlides = (palette: PaletteData) => {
     router.push(`/presentations/new?paletteId=${palette.id}`);
+  };
+
+  const handleSkillClick = (palette: PaletteData) => {
+    setSkillPalette(palette);
+    setSkillModalOpen(true);
+  };
+
+  const handleDownloadSkill = async (skillName: string) => {
+    if (!skillPalette) return;
+    setSkillModalOpen(false);
+    try {
+      const res = await fetch(`/api/palette/${skillPalette.id}/skill`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          skillName,
+          paletteName: skillPalette.name,
+          colors: skillPalette.colors.map((c) => ({ hex: c.hex, role: c.role, order: c.order ?? 0 })),
+          libraries: [],
+        }),
+      });
+      if (!res.ok) throw new Error("Failed to generate skill");
+      const blob = await res.blob();
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download =
+        res.headers.get("Content-Disposition")?.match(/filename="(.+)"/)?.[1] ||
+        `${skillName}.zip`;
+      a.click();
+      URL.revokeObjectURL(url);
+    } catch (e) {
+      console.error("Skill download failed:", e);
+    }
   };
 
   const totalChats = codeChats.length + presentationChats.length;
@@ -45,7 +84,7 @@ export default function Dashboard() {
           </div>
           <Link
             href="/palettes/new"
-            className="flex items-center gap-2 px-4 py-2 bg-jedith-navy text-white rounded-xl text-sm font-semibold hover:bg-jedith-navy-light active:scale-95 transition-all shadow-sm"
+            className="flex items-center gap-2 px-4 py-2 bg-jedith-forest text-white rounded-xl text-sm font-semibold hover:bg-jedith-forest-light active:scale-95 transition-all shadow-sm"
           >
             <Plus className="w-4 h-4" />
             New Palette
@@ -112,6 +151,7 @@ export default function Dashboard() {
                   onDelete={() => deletePalette(palette.id)}
                   onCodeClick={() => handlePaletteCode(palette)}
                   onSlidesClick={() => handlePaletteSlides(palette)}
+                  onSkillClick={() => handleSkillClick(palette)}
                 />
               ))}
             </div>
@@ -195,17 +235,17 @@ export default function Dashboard() {
 
         {/* Quick-start banner — only shown when everything is empty */}
         {palettes.length === 0 && totalChats === 0 && !loadingPalettes && !loadingChats && (
-          <div className="relative overflow-hidden rounded-2xl border border-jedith-navy/20 bg-gradient-to-br from-jedith-navy to-[#151D4A] p-6 text-white">
+          <div className="relative overflow-hidden rounded-2xl border border-jedith-forest/20 bg-gradient-to-br from-jedith-forest to-[#1a2310] p-6 text-white">
             <div className="absolute inset-0 opacity-10"
               style={{
-                backgroundImage: "radial-gradient(circle at 80% 50%, #F96167 0%, transparent 60%)",
+                backgroundImage: "radial-gradient(circle at 80% 50%, #d57a2a 0%, transparent 60%)",
               }}
             />
             <div className="relative z-10 flex items-center justify-between gap-4">
               <div>
                 <div className="flex items-center gap-2 mb-1">
-                  <Sparkles className="w-4 h-4 text-jedith-coral" />
-                  <span className="text-xs font-semibold text-jedith-coral uppercase tracking-wider">
+                  <Sparkles className="w-4 h-4 text-jedith-copper" />
+                  <span className="text-xs font-semibold text-jedith-copper uppercase tracking-wider">
                     Get Started
                   </span>
                 </div>
@@ -216,7 +256,7 @@ export default function Dashboard() {
               </div>
               <Link
                 href="/palettes/new"
-                className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 bg-jedith-coral text-white rounded-xl text-sm font-semibold hover:bg-[#e8505a] active:scale-95 transition-all shadow-lg"
+                className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 bg-jedith-copper text-white rounded-xl text-sm font-semibold hover:bg-[#aa6122] active:scale-95 transition-all shadow-lg"
               >
                 Start Now
                 <ArrowRight className="w-4 h-4" />
@@ -225,6 +265,14 @@ export default function Dashboard() {
           </div>
         )}
       </div>
+
+      {/* Skill name modal */}
+      <SkillNameModal
+        open={skillModalOpen}
+        defaultName={skillPalette?.name || ""}
+        onConfirm={handleDownloadSkill}
+        onCancel={() => setSkillModalOpen(false)}
+      />
     </div>
   );
 }
@@ -245,9 +293,9 @@ function StatCard({
   href: string;
 }) {
   const styles = {
-    navy: "bg-jedith-navy text-white",
-    coral: "bg-jedith-coral text-white",
-    ice: "bg-jedith-ice text-jedith-navy",
+    navy: "bg-jedith-forest text-white",
+    coral: "bg-jedith-copper text-white",
+    ice: "bg-jedith-sage text-jedith-forest",
   };
 
   return (
@@ -281,7 +329,7 @@ function SectionHeader({
   return (
     <div className="flex items-center justify-between mb-3">
       <h2 className="flex items-center gap-2 text-sm font-semibold text-foreground">
-        <span className="text-jedith-coral">{icon}</span>
+        <span className="text-jedith-copper">{icon}</span>
         {title}
         {count > 0 && (
           <span className="ml-0.5 text-[11px] font-normal text-muted-foreground bg-muted px-1.5 py-0.5 rounded-full">
@@ -291,7 +339,7 @@ function SectionHeader({
       </h2>
       <Link
         href={href}
-        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-jedith-coral transition-colors"
+        className="flex items-center gap-1 text-xs text-muted-foreground hover:text-jedith-copper transition-colors"
       >
         View all <ArrowRight className="w-3 h-3" />
       </Link>
@@ -315,14 +363,14 @@ function ChatRow({
   return (
     <Link
       href={href}
-      className="flex items-center justify-between p-3 rounded-xl border border-border bg-card hover:border-jedith-navy/30 hover:shadow-sm hover:-translate-y-px transition-all group"
+      className="flex items-center justify-between p-3 rounded-xl border border-border bg-card hover:border-jedith-forest/30 hover:shadow-sm hover:-translate-y-px transition-all group"
     >
       <div className="flex items-center gap-3 min-w-0">
-        <span className="text-muted-foreground group-hover:text-jedith-navy transition-colors flex-shrink-0">
+        <span className="text-muted-foreground group-hover:text-jedith-forest transition-colors flex-shrink-0">
           {icon}
         </span>
         <div className="min-w-0">
-          <p className="text-sm font-medium text-foreground truncate group-hover:text-jedith-navy transition-colors">
+          <p className="text-sm font-medium text-foreground truncate group-hover:text-jedith-forest transition-colors">
             {name}
           </p>
           <p className="text-[11px] text-muted-foreground truncate">{meta}</p>
@@ -355,8 +403,8 @@ function EmptyState({
 }) {
   const btnStyle =
     accent === "navy"
-      ? "bg-jedith-navy hover:bg-jedith-navy-light"
-      : "bg-jedith-coral hover:bg-[#e8505a]";
+      ? "bg-jedith-forest hover:bg-jedith-forest-light"
+      : "bg-jedith-copper hover:bg-[#aa6122]";
 
   return (
     <div

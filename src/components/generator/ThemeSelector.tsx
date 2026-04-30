@@ -23,7 +23,7 @@ export function ThemeSelector({ value, onChange, className }: ThemeSelectorProps
     return (
       <p className={cn("text-sm text-muted-foreground", className)}>
         No palettes yet —{" "}
-        <a href="/palettes" className="text-jedith-coral hover:underline">
+        <a href="/palettes" className="text-jedith-copper hover:underline">
           create one first
         </a>
       </p>
@@ -39,8 +39,8 @@ export function ThemeSelector({ value, onChange, className }: ThemeSelectorProps
           className={cn(
             "w-full flex items-center gap-3 px-3 py-2.5 rounded-lg border text-left transition-all",
             value === palette.id
-              ? "border-jedith-navy bg-jedith-navy/5"
-              : "border-border hover:border-jedith-navy/50"
+              ? "border-jedith-forest bg-jedith-forest/5"
+              : "border-border hover:border-jedith-forest/50"
           )}
         >
           <div className="flex gap-1">
@@ -52,7 +52,7 @@ export function ThemeSelector({ value, onChange, className }: ThemeSelectorProps
             {palette.name}
           </span>
           {value === palette.id && (
-            <span className="ml-auto text-xs text-jedith-navy font-medium">
+            <span className="ml-auto text-xs text-jedith-forest font-medium">
               selected
             </span>
           )}

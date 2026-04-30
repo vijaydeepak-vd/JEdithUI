@@ -51,7 +51,7 @@ function SlideCard({
       onClick={onClick}
       className={`
         flex-shrink-0 w-28 h-20 rounded-lg border-2 overflow-hidden transition-all text-left
-        ${active ? "border-jedith-coral shadow-md scale-105" : "border-border hover:border-jedith-navy/50"}
+        ${active ? "border-jedith-copper shadow-md scale-105" : "border-border hover:border-jedith-forest/50"}
       `}
     >
       <div className="w-full h-full p-1.5 bg-card flex flex-col gap-0.5">
@@ -61,7 +61,7 @@ function SlideCard({
             {index + 1}
           </span>
           {(hasCode || hasTable) && (
-            <span className="text-[7px] text-jedith-coral">
+            <span className="text-[7px] text-jedith-copper">
               {hasCode ? "{ }" : "⊞"}
             </span>
           )}

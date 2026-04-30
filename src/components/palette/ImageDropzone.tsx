@@ -44,8 +44,8 @@ export function ImageDropzone({ onImageSelect, disabled }: ImageDropzoneProps) {
       className={cn(
         "relative border-2 border-dashed rounded-xl transition-colors cursor-pointer",
         isDragActive
-          ? "border-jedith-coral bg-jedith-coral/5"
-          : "border-border hover:border-jedith-navy/50 hover:bg-muted/30",
+          ? "border-jedith-copper bg-jedith-copper/5"
+          : "border-border hover:border-jedith-forest/50 hover:bg-muted/30",
         disabled && "opacity-50 cursor-not-allowed"
       )}
     >
@@ -67,8 +67,8 @@ export function ImageDropzone({ onImageSelect, disabled }: ImageDropzoneProps) {
         <div className="flex flex-col items-center justify-center gap-3 p-8 text-center">
           {isDragActive ? (
             <>
-              <ImageIcon className="w-10 h-10 text-jedith-coral" />
-              <p className="text-sm font-medium text-jedith-coral">Drop it!</p>
+              <ImageIcon className="w-10 h-10 text-jedith-copper" />
+              <p className="text-sm font-medium text-jedith-copper">Drop it!</p>
             </>
           ) : (
             <>

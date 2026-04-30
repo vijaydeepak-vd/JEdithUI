@@ -47,7 +47,7 @@ export function MessageBubble({
   return (
     <div className={cn("flex gap-3", isUser ? "justify-end" : "justify-start")}>
       {!isUser && (
-        <div className="w-7 h-7 rounded-full bg-jedith-navy flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-1">
+        <div className="w-7 h-7 rounded-full bg-jedith-forest flex items-center justify-center text-white text-xs font-bold flex-shrink-0 mt-1">
           J
         </div>
       )}
@@ -58,7 +58,7 @@ export function MessageBubble({
           className={cn(
             "px-4 py-3 rounded-2xl text-sm leading-relaxed",
             isUser
-              ? "bg-jedith-navy text-white rounded-tr-sm"
+              ? "bg-jedith-forest text-white rounded-tr-sm"
               : "bg-card border border-border rounded-tl-sm"
           )}
         >

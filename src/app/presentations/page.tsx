@@ -19,7 +19,7 @@ export default function PresentationsPage() {
         </div>
         <Link
           href="/presentations/new"
-          className="flex items-center gap-2 px-4 py-2 bg-jedith-navy text-white rounded-lg text-sm font-medium hover:bg-jedith-navy-light transition-colors"
+          className="flex items-center gap-2 px-4 py-2 bg-jedith-forest text-white rounded-lg text-sm font-medium hover:bg-jedith-forest-light transition-colors"
         >
           <Plus className="w-4 h-4" />
           New Presentation
@@ -41,7 +41,7 @@ export default function PresentationsPage() {
           </p>
           <Link
             href="/presentations/new"
-            className="px-4 py-2 bg-jedith-navy text-white rounded-lg text-sm font-medium"
+            className="px-4 py-2 bg-jedith-forest text-white rounded-lg text-sm font-medium"
           >
             Create First Presentation
           </Link>
@@ -51,14 +51,14 @@ export default function PresentationsPage() {
           {chats.map((chat) => (
             <div
               key={chat.id}
-              className="flex items-center gap-4 p-4 rounded-xl border border-border hover:border-jedith-navy/50 hover:bg-muted/30 transition-all group"
+              className="flex items-center gap-4 p-4 rounded-xl border border-border hover:border-jedith-forest/50 hover:bg-muted/30 transition-all group"
             >
-              <div className="w-10 h-10 rounded-lg bg-jedith-coral/10 flex items-center justify-center flex-shrink-0">
-                <Presentation className="w-5 h-5 text-jedith-coral" />
+              <div className="w-10 h-10 rounded-lg bg-jedith-copper/10 flex items-center justify-center flex-shrink-0">
+                <Presentation className="w-5 h-5 text-jedith-copper" />
               </div>
 
               <Link href={`/presentations/${chat.id}`} className="flex-1 min-w-0">
-                <p className="font-medium text-foreground group-hover:text-jedith-navy transition-colors truncate">
+                <p className="font-medium text-foreground group-hover:text-jedith-forest transition-colors truncate">
                   {chat.name}
                 </p>
                 <p className="text-xs text-muted-foreground mt-0.5">
