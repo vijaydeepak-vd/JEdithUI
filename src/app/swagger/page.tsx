@@ -3,7 +3,6 @@
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { FileCode2, Upload, Link2, ChevronRight, Loader2 } from "lucide-react";
-import { getOrCreateSessionId } from "@/lib/utils";
 import type { SwaggerParseResult } from "@/types";
 
 const METHOD_COLORS: Record<string, string> = {
@@ -26,11 +25,10 @@ export default function SwaggerPage() {
     setParsing(true);
     setError(null);
     try {
-      const sessionId = getOrCreateSessionId();
       const res = await fetch("/api/swagger", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ specText, sessionId }),
+        body: JSON.stringify({ specText }),
       });
       const data = await res.json();
       if (!res.ok) throw new Error(data.error || "Parse failed");

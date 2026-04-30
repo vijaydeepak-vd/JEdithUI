@@ -28,7 +28,8 @@ export async function POST(req: NextRequest) {
       theme as SlideTheme
     );
 
-    return new NextResponse(buffer, {
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    return new NextResponse(buffer as any, {
       headers: {
         "Content-Type": mimeType,
         "Content-Disposition": `attachment; filename="${filename}"`,

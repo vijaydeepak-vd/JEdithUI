@@ -7,20 +7,14 @@
     "build": "NODE_PATH=./node_modules node node_modules/next/dist/bin/next build",
     "start": "NODE_PATH=./node_modules node node_modules/next/dist/bin/next start",
     "lint": "next lint",
-    "db:push": "prisma db push",
-    "db:generate": "prisma generate",
-    "db:migrate": "prisma migrate dev",
-    "db:reset": "prisma migrate reset",
-    "db:studio": "prisma studio"
+    "lint:ts": "tsc --noEmit"
   },
   "dependencies": {
     "@babel/parser": "^7.24.0",
     "@marp-team/marp-cli": "^4.0.0",
     "@marp-team/marp-core": "^4.0.0",
-    "@prisma/adapter-better-sqlite3": "^7.8.0",
-    "@prisma/client": "^7.8.0",
-    "better-sqlite3": "^12.9.0",
     "clsx": "^2.1.1",
+    "dexie": "^4.4.2",
     "lucide-react": "^0.400.0",
     "nanoid": "^5.0.7",
     "next": "16.1.6",
@@ -41,7 +35,6 @@
     "eslint": "^9.0.0",
     "eslint-config-next": "15.3.1",
     "postcss": "^8.4.38",
-    "prisma": "^7.8.0",
     "tailwindcss": "^3.4.4",
     "tailwindcss-animate": "^1.0.7",
     "typescript": "^5.5.2"

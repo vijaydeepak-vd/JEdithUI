@@ -44,14 +44,3 @@ export function timeAgo(dateStr: string): string {
   if (seconds < 604800) return `${Math.floor(seconds / 86400)}d ago`;
   return date.toLocaleDateString();
 }
-
-export function getOrCreateSessionId(): string {
-  if (typeof window === "undefined") return "";
-  const key = "jedith_session_id";
-  let id = localStorage.getItem(key);
-  if (!id) {
-    id = `session_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
-    localStorage.setItem(key, id);
-  }
-  return id;
-}

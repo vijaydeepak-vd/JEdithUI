@@ -1,59 +1,91 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import useSWR from "swr";
-import { getOrCreateSessionId } from "@/lib/utils";
+import { useState, useEffect, useCallback } from "react";
+import { db, generateId, nowISO } from "@/lib/db-client";
+import type { DBPalette, DBColor } from "@/lib/db-client";
 import type { PaletteData, PaletteColor, PaletteSource } from "@/types";
 
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+/** Convert DB palette to API-compatible shape */
+function toApiShape(p: DBPalette): PaletteData {
+  return {
+    id: p.id,
+    name: p.name,
+    source: p.source as PaletteSource,
+    colors: p.colors as PaletteColor[],
+    createdAt: p.createdAt,
+    updatedAt: p.updatedAt,
+  };
+}
 
 export function usePalettes() {
-  // null on server + first client render → avoids SSR/hydration mismatch
-  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [palettes, setPalettes] = useState<PaletteData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    setSessionId(getOrCreateSessionId());
+  const load = useCallback(async () => {
+    const all = await db.palettes.orderBy("updatedAt").reverse().toArray();
+    setPalettes(all.map(toApiShape));
+    setIsLoading(false);
   }, []);
 
-  const { data, isLoading, mutate } = useSWR<{ palettes: PaletteData[] }>(
-    sessionId ? `/api/palettes?sessionId=${sessionId}` : null,
-    fetcher
-  );
-
-  const palettes = data?.palettes || [];
+  useEffect(() => {
+    load();
+  }, [load]);
 
   const createPalette = async (
     name: string,
     source: PaletteSource,
     colors: PaletteColor[]
   ): Promise<PaletteData> => {
-    const res = await fetch("/api/palettes", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name, source, colors, sessionId }),
-    });
-    const json = await res.json();
-    if (!res.ok) throw new Error(json.error || "Failed to create palette");
-    await mutate();
-    return json.palette;
+    const now = nowISO();
+    const palette: DBPalette = {
+      id: generateId(),
+      name,
+      source,
+      colors: colors.map((c) => ({ hex: c.hex, role: c.role, order: c.order })),
+      createdAt: now,
+      updatedAt: now,
+    };
+    await db.palettes.add(palette);
+    await load();
+    return toApiShape(palette);
   };
 
   const updatePalette = async (
     id: string,
     updates: { name?: string; colors?: PaletteColor[] }
   ): Promise<void> => {
-    await fetch(`/api/palettes/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(updates),
-    });
-    await mutate();
+    const existing = await db.palettes.get(id);
+    if (!existing) return;
+
+    const data: Partial<DBPalette> = { updatedAt: nowISO() };
+    if (updates.name) data.name = updates.name;
+    if (updates.colors) {
+      data.colors = updates.colors.map((c) => ({
+        hex: c.hex,
+        role: c.role,
+        order: c.order,
+      }));
+    }
+    await db.palettes.update(id, data);
+    await load();
   };
 
   const deletePalette = async (id: string): Promise<void> => {
-    await fetch(`/api/palettes/${id}`, { method: "DELETE" });
-    await mutate();
+    // Also delete all chats using this palette and their messages
+    const chats = await db.chats.where("paletteId").equals(id).toArray();
+    const chatIds = chats.map((c) => c.id);
+
+    await db.transaction("rw", [db.palettes, db.chats, db.messages, db.codeVersions, db.slideVersions], async () => {
+      for (const chatId of chatIds) {
+        await db.codeVersions.where("chatId").equals(chatId).delete();
+        await db.slideVersions.where("chatId").equals(chatId).delete();
+        await db.messages.where("chatId").equals(chatId).delete();
+      }
+      await db.chats.where("paletteId").equals(id).delete();
+      await db.palettes.delete(id);
+    });
+    await load();
   };
 
-  return { palettes, isLoading, createPalette, updatePalette, deletePalette, refresh: mutate };
+  return { palettes, isLoading, createPalette, updatePalette, deletePalette, refresh: load };
 }

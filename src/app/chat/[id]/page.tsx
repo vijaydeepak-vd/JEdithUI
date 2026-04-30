@@ -14,15 +14,13 @@ import {
   Loader2,
 } from "lucide-react";
 import Link from "next/link";
-import { useChatThread } from "@/hooks/useChat";
+import { useChatThread, useChatMessages } from "@/hooks/useChat";
+import { db, generateId, nowISO } from "@/lib/db-client";
 import { PromptInput } from "@/components/generator/PromptInput";
 import { CodePreview } from "@/components/chat/CodePreview";
 import { SkillNameModal } from "@/components/ui/SkillNameModal";
-import { timeAgo } from "@/lib/utils";
-import useSWR from "swr";
+import { timeAgo, generateChatName } from "@/lib/utils";
 import type { MessageData, PaletteColor, Framework, UILibrary } from "@/types";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
 
 type LeftTab = "preview" | "code";
 
@@ -35,13 +33,13 @@ export default function ChatPage({
   const searchParams = useSearchParams();
   const firstPrompt = searchParams.get("firstPrompt");
 
-  const { chat, isLoading: chatLoading } = useChatThread(id);
-  const { data: messagesData, mutate: refreshMessages } = useSWR(
-    id ? `/api/chat/${id}/messages` : null,
-    fetcher
-  );
+  const { chat, isLoading: chatLoading, refresh: refreshChat } = useChatThread(id);
+  const {
+    messages,
+    isLoading: messagesLoading,
+    refresh: refreshMessages,
+  } = useChatMessages(id);
 
-  const [messages, setMessages] = useState<MessageData[]>([]);
   const [generating, setGenerating] = useState(false);
   const [firstPromptSent, setFirstPromptSent] = useState(false);
   const [activeTab, setActiveTab] = useState<LeftTab>("preview");
@@ -51,34 +49,124 @@ export default function ChatPage({
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (messagesData?.messages) setMessages(messagesData.messages);
-  }, [messagesData]);
-
-  useEffect(() => {
-    if (firstPrompt && !firstPromptSent && chat && messages.length === 0) {
+    if (firstPrompt && !firstPromptSent && chat && messages.length === 0 && !messagesLoading) {
       setFirstPromptSent(true);
       handleSend(firstPrompt);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [firstPrompt, chat, messages.length, firstPromptSent]);
+  }, [firstPrompt, chat, messages.length, firstPromptSent, messagesLoading]);
 
   // Auto-scroll chat
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, generating]);
 
+  // Chat metadata
+  const palette: PaletteColor[] = chat?.palette?.colors ?? [];
+  const framework: Framework = (chat?.framework as Framework) ?? "REACT";
+  const libraries: UILibrary[] = (chat?.libraries as UILibrary[]) ?? [];
+
   const handleSend = async (prompt: string, imageBase64?: string) => {
+    if (!chat) return;
     setGenerating(true);
+
+    // Auto-name the chat from the first prompt
+    if (chat.name === "Untitled Chat" || !chat.name) {
+      await db.chats.update(id, { name: generateChatName(prompt), updatedAt: nowISO() });
+      refreshChat();
+    }
+
+    // Save user message in IndexedDB
+    const userMsgId = generateId();
+    await db.messages.add({
+      id: userMsgId,
+      role: "USER",
+      content: prompt,
+      imageBase64,
+      chatId: id,
+      createdAt: nowISO(),
+    });
+    await refreshMessages();
+
+    // Get existing code for refinement context
+    const latestCodeVersions = await db.codeVersions
+      .where("chatId")
+      .equals(id)
+      .reverse()
+      .sortBy("version");
+    const existingCode = latestCodeVersions[0]?.code;
+    const currentVersion = latestCodeVersions[0]?.version ?? 0;
+
     try {
+      // Call stateless generate API with all context
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chatId: id, prompt, imageBase64 }),
+        body: JSON.stringify({
+          prompt,
+          model: chat.modelName,
+          palette: palette.map((c) => ({ hex: c.hex, role: c.role, order: c.order ?? 0 })),
+          libraries,
+          framework,
+          existingCode,
+          imageBase64,
+        }),
       });
+
       const data = await res.json();
-      if (res.ok) {
-        await refreshMessages();
+
+      if (res.ok && data.code) {
+        // Save assistant message + code version in IndexedDB
+        const assistantMsgId = generateId();
+        const codeVersionId = generateId();
+        const now = nowISO();
+
+        await db.messages.add({
+          id: assistantMsgId,
+          role: "ASSISTANT",
+          content:
+            data.warnings?.length > 0
+              ? `Generated successfully. ${data.warnings.length} warning(s): ${data.warnings.join("; ")}`
+              : "Generated successfully.",
+          chatId: id,
+          createdAt: now,
+        });
+
+        await db.codeVersions.add({
+          id: codeVersionId,
+          code: data.code,
+          language: data.language || "tsx",
+          version: currentVersion + 1,
+          modelName: chat.modelName,
+          messageId: assistantMsgId,
+          chatId: id,
+          createdAt: now,
+        });
+
+        // Update chat timestamp
+        await db.chats.update(id, { updatedAt: now });
+      } else {
+        // Save error as assistant message
+        await db.messages.add({
+          id: generateId(),
+          role: "ASSISTANT",
+          content: `Generation failed: ${data.error || "Unknown error"}`,
+          chatId: id,
+          createdAt: nowISO(),
+        });
       }
+
+      await refreshMessages();
+    } catch (error) {
+      // Network/parse error
+      await db.messages.add({
+        id: generateId(),
+        role: "ASSISTANT",
+        content: `Generation failed: ${error instanceof Error ? error.message : "Network error"}`,
+        chatId: id,
+        createdAt: nowISO(),
+      });
+      await refreshMessages();
     } finally {
       setGenerating(false);
     }
@@ -87,11 +175,6 @@ export default function ChatPage({
   // Latest code version
   const latestCodeMsg = [...messages].reverse().find((m) => m.codeVersion);
   const latestCode = latestCodeMsg?.codeVersion;
-
-  // Chat metadata
-  const palette: PaletteColor[] = chat?.palette?.colors ?? [];
-  const framework: Framework = (chat?.framework as Framework) ?? "REACT";
-  const libraries: UILibrary[] = (chat?.libraries as UILibrary[]) ?? [];
 
   // ── Copy code ──
   const handleCopy = async () => {
@@ -127,15 +210,24 @@ export default function ChatPage({
     setSkillModalOpen(false);
     setDownloadingSkill(true);
     try {
-      const params = new URLSearchParams({ name: skillName });
-      if (libraries.length > 0) params.set("libraries", libraries.join(","));
-      const res = await fetch(`/api/palette/${chat.paletteId}/skill?${params}`);
+      const res = await fetch(`/api/palette/${chat.paletteId}/skill`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          skillName,
+          paletteName: chat.palette?.name || chat.name,
+          colors: palette.map((c) => ({ hex: c.hex, role: c.role, order: c.order ?? 0 })),
+          libraries,
+        }),
+      });
       if (!res.ok) throw new Error("Failed to generate skill");
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = res.headers.get("Content-Disposition")?.match(/filename="(.+)"/)?.[1] || `${skillName}.zip`;
+      a.download =
+        res.headers.get("Content-Disposition")?.match(/filename="(.+)"/)?.[1] ||
+        `${skillName}.zip`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {
@@ -329,7 +421,7 @@ export default function ChatPage({
                         />
                       </div>
                     )}
-                    {/* Show image badge if hasImage but no base64 (shouldn't happen, but safe fallback) */}
+                    {/* Show image badge if hasImage but no base64 */}
                     {!msg.imageBase64 && msg.hasImage && (
                       <div className="flex items-center gap-1 mb-1 text-xs opacity-70">
                         <ImageIcon className="w-3 h-3" />

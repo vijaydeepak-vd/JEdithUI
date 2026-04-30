@@ -1,8 +1,6 @@
 import type { NextConfig } from 'next';
 
 const nextConfig: NextConfig = {
-  // Prisma uses a native .dylib.node engine — must not be bundled by Turbopack
-  serverExternalPackages: ['@prisma/client', 'prisma', '.prisma'],
   experimental: {
     serverActions: {
       bodySizeLimit: '10mb',

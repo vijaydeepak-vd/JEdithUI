@@ -8,7 +8,6 @@ import { PaletteEditor } from "@/components/palette/PaletteEditor";
 import { ColorSwatch } from "@/components/palette/ColorSwatch";
 import { usePalettes } from "@/hooks/usePalettes";
 import { SkillNameModal } from "@/components/ui/SkillNameModal";
-import { getOrCreateSessionId } from "@/lib/utils";
 import type { PaletteData, PaletteColor } from "@/types";
 
 export default function PaletteDetailPage() {
@@ -29,19 +28,7 @@ export default function PaletteDetailPage() {
     if (found) setPalette(found);
   }, [palettes, id]);
 
-  // Fetch directly if not in cache yet
-  useEffect(() => {
-    if (palette) return;
-    const sessionId = getOrCreateSessionId();
-    fetch(`/api/palettes/${id}`, {
-      headers: { "x-session-id": sessionId },
-    })
-      .then((r) => r.json())
-      .then((data) => {
-        if (data.palette) setPalette(data.palette);
-      })
-      .catch(console.error);
-  }, [id, palette]);
+  // Palette data comes from Dexie via usePalettes — no server fetch needed
 
   const handleSave = async (name: string, colors: PaletteColor[]) => {
     setSaving(true);
@@ -66,11 +53,20 @@ export default function PaletteDetailPage() {
   };
 
   const handleDownloadSkill = async (skillName: string) => {
+    if (!palette) return;
     setSkillModalOpen(false);
     setDownloadingSkill(true);
     try {
-      const params = new URLSearchParams({ name: skillName });
-      const res = await fetch(`/api/palette/${id}/skill?${params}`);
+      const res = await fetch(`/api/palette/${id}/skill`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          skillName,
+          paletteName: palette.name,
+          colors: palette.colors.map((c) => ({ hex: c.hex, role: c.role, order: c.order ?? 0 })),
+          libraries: [],
+        }),
+      });
       if (!res.ok) throw new Error("Failed to generate skill");
       const blob = await res.blob();
       const url = URL.createObjectURL(blob);
@@ -138,7 +134,7 @@ export default function PaletteDetailPage() {
         <div className="bg-card border border-border rounded-xl p-5 space-y-4">
           <div className="flex flex-wrap gap-2">
             {palette.colors.map((c, i) => (
-              <ColorSwatch key={i} color={c} size="lg" showLabel />
+              <ColorSwatch key={i} color={c} size="lg" />
             ))}
           </div>
 

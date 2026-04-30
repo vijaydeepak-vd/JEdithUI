@@ -1,67 +1,49 @@
 import { NextRequest, NextResponse } from "next/server";
-import { prisma } from "@/lib/db";
 import {
   generateSkillPackage,
   generateSkillZipBufferBuiltin,
 } from "@/lib/skill/generate-skill-zip";
-import { safeJsonParse } from "@/lib/utils";
 import type { PaletteColor, UILibrary } from "@/types";
+import { z } from "zod";
 
 /**
- * GET /api/palette/[id]/skill
+ * POST /api/palette/[id]/skill  (STATELESS)
  *
- * Downloads a Claude Code skill ZIP for the given palette.
- * The ZIP contains:
- *   - SKILL.md        (main skill instructions)
- *   - references/theme.md           (palette tokens)
- *   - references/coding-standards.md (coding conventions)
+ * Downloads a Claude Code skill ZIP for the given palette data.
+ * All palette/color data is sent by the client — no database lookup.
  *
- * Query params:
- *   - libraries: comma-separated list of UI libraries (optional)
+ * The [id] segment is kept for backward URL compatibility but is unused.
+ *
+ * Request body:
+ *   - skillName: string
+ *   - paletteName: string
+ *   - colors: PaletteColor[]
+ *   - libraries: UILibrary[]  (optional)
  */
-export async function GET(
-  req: NextRequest,
-  { params }: { params: Promise<{ id: string }> }
-) {
-  const { id } = await params;
+const SkillSchema = z.object({
+  skillName: z.string().min(1),
+  paletteName: z.string().min(1),
+  colors: z.array(
+    z.object({ hex: z.string(), role: z.string(), order: z.number() })
+  ),
+  libraries: z.array(z.string()).default([]),
+});
 
-  // Fetch palette with colors
-  const palette = await prisma.palette.findUnique({
-    where: { id },
-    include: { colors: { orderBy: { order: "asc" } } },
-  });
+export async function POST(req: NextRequest) {
+  const body = await req.json();
+  const parsed = SkillSchema.safeParse(body);
+  if (!parsed.success)
+    return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  if (!palette) {
-    return NextResponse.json({ error: "Palette not found" }, { status: 404 });
-  }
+  const { skillName, paletteName, colors, libraries } = parsed.data;
 
-  // Get skill name and libraries from query params
-  const url = new URL(req.url);
-  const skillName = url.searchParams.get("name")?.trim() || palette.name;
-  const libsParam = url.searchParams.get("libraries");
-  let libraries: UILibrary[] = [];
-
-  if (libsParam) {
-    libraries = libsParam.split(",").filter(Boolean) as UILibrary[];
-  } else {
-    // Try to infer from the most recent chat using this palette
-    const recentChat = await prisma.chat.findFirst({
-      where: { paletteId: id, type: "CODE" },
-      orderBy: { updatedAt: "desc" },
-    });
-    if (recentChat) {
-      libraries = safeJsonParse<UILibrary[]>(recentChat.libraries, []);
-    }
-  }
-
-  const colors = palette.colors.map((c) => ({
-    hex: c.hex,
-    role: c.role,
-    order: c.order,
-  })) as PaletteColor[];
-
-  // Generate the skill package using user-provided skill name
-  const pkg = generateSkillPackage(skillName, palette.name, colors, libraries);
+  // Generate the skill package
+  const pkg = generateSkillPackage(
+    skillName,
+    paletteName,
+    colors as PaletteColor[],
+    libraries as UILibrary[]
+  );
 
   // Build ZIP using built-in zero-dependency builder
   const zipBuffer = generateSkillZipBufferBuiltin(pkg);
@@ -76,4 +58,16 @@ export async function GET(
       "Content-Length": String(zipBuffer.length),
     },
   });
+}
+
+/**
+ * Keep GET for backward compatibility (redirects to POST logic won't work for downloads).
+ * This accepts query params: ?name=...&paletteName=...&colors=...&libraries=...
+ * But the primary interface is now POST.
+ */
+export async function GET(req: NextRequest) {
+  return NextResponse.json(
+    { error: "Use POST with { skillName, paletteName, colors, libraries } body" },
+    { status: 405 }
+  );
 }

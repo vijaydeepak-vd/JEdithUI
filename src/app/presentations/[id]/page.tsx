@@ -4,15 +4,13 @@ import { useState, useEffect, useRef, use } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Download, FileDown, Loader2, Copy, Check } from "lucide-react";
 import Link from "next/link";
-import { useChatThread } from "@/hooks/useChat";
+import { useChatThread, useChatMessages } from "@/hooks/useChat";
+import { db, generateId, nowISO } from "@/lib/db-client";
 import { PromptInput } from "@/components/generator/PromptInput";
 import { SlidePreview } from "@/components/chat/SlidePreview";
 import { SlideFilmstrip } from "@/components/chat/SlideFilmstrip";
-import { timeAgo } from "@/lib/utils";
-import useSWR from "swr";
-import type { MessageData, PaletteColor, SlideTheme } from "@/types";
-
-const fetcher = (url: string) => fetch(url).then((r) => r.json());
+import { timeAgo, generateChatName } from "@/lib/utils";
+import type { PaletteColor, SlideTheme } from "@/types";
 
 export default function PresentationChatPage({
   params,
@@ -23,13 +21,13 @@ export default function PresentationChatPage({
   const searchParams = useSearchParams();
   const firstPrompt = searchParams.get("firstPrompt");
 
-  const { chat } = useChatThread(id);
-  const { data: messagesData, mutate: refreshMessages } = useSWR(
-    id ? `/api/chat/${id}/messages` : null,
-    fetcher
-  );
+  const { chat, refresh: refreshChat } = useChatThread(id);
+  const {
+    messages,
+    isLoading: messagesLoading,
+    refresh: refreshMessages,
+  } = useChatMessages(id);
 
-  const [messages, setMessages] = useState<MessageData[]>([]);
   const [generating, setGenerating] = useState(false);
   const [firstPromptSent, setFirstPromptSent] = useState(false);
   const [exporting, setExporting] = useState(false);
@@ -38,37 +36,117 @@ export default function PresentationChatPage({
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (messagesData?.messages) setMessages(messagesData.messages);
-  }, [messagesData]);
-
-  useEffect(() => {
-    if (firstPrompt && !firstPromptSent && chat && messages.length === 0) {
+    if (firstPrompt && !firstPromptSent && chat && messages.length === 0 && !messagesLoading) {
       setFirstPromptSent(true);
       handleSend(firstPrompt);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [firstPrompt, chat, messages.length, firstPromptSent]);
+  }, [firstPrompt, chat, messages.length, firstPromptSent, messagesLoading]);
 
   // Auto-scroll chat to bottom
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, generating]);
 
+  // Palette data from chat
+  const palette: PaletteColor[] = chat?.palette?.colors ?? [];
+  const slideTheme: SlideTheme = (chat?.slideTheme as SlideTheme) ?? "default";
+
   const handleSend = async (prompt: string) => {
+    if (!chat) return;
     setGenerating(true);
+
+    // Auto-name the chat
+    if (chat.name === "Untitled Chat" || chat.name === "Untitled Presentation") {
+      await db.chats.update(id, { name: generateChatName(prompt), updatedAt: nowISO() });
+      refreshChat();
+    }
+
+    // Save user message in IndexedDB
+    await db.messages.add({
+      id: generateId(),
+      role: "USER",
+      content: prompt,
+      chatId: id,
+      createdAt: nowISO(),
+    });
+    await refreshMessages();
+
+    // Get existing markdown for refinement context
+    const latestSlideVersions = await db.slideVersions
+      .where("chatId")
+      .equals(id)
+      .reverse()
+      .sortBy("version");
+    const existingMarkdown = latestSlideVersions[0]?.markdown;
+    const currentVersion = latestSlideVersions[0]?.version ?? 0;
+
     try {
+      // Call stateless presentation generate API
       const res = await fetch("/api/presentation/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ chatId: id, prompt }),
+        body: JSON.stringify({
+          prompt,
+          model: chat.modelName,
+          palette: palette.map((c) => ({ hex: c.hex, role: c.role, order: c.order ?? 0 })),
+          slideTheme,
+          existingMarkdown,
+        }),
       });
+
       const data = await res.json();
-      if (res.ok) {
+
+      if (res.ok && data.markdown) {
+        // Save assistant message + slide version in IndexedDB
+        const assistantMsgId = generateId();
+        const slideVersionId = generateId();
+        const now = nowISO();
+
+        await db.messages.add({
+          id: assistantMsgId,
+          role: "ASSISTANT",
+          content: `Generated ${data.slideCount} slides.`,
+          chatId: id,
+          createdAt: now,
+        });
+
+        await db.slideVersions.add({
+          id: slideVersionId,
+          markdown: data.markdown,
+          slideCount: data.slideCount,
+          version: currentVersion + 1,
+          modelName: chat.modelName,
+          messageId: assistantMsgId,
+          chatId: id,
+          createdAt: now,
+        });
+
+        // Update chat timestamp
+        await db.chats.update(id, { updatedAt: now });
+
         setCurrentSlide(0);
-        // Let SWR be the single source of truth — avoids duplicate keys
-        // from local append + SWR revalidation racing
-        await refreshMessages();
+      } else {
+        // Save error as assistant message
+        await db.messages.add({
+          id: generateId(),
+          role: "ASSISTANT",
+          content: `Generation failed: ${data.error || "Unknown error"}`,
+          chatId: id,
+          createdAt: nowISO(),
+        });
       }
+
+      await refreshMessages();
+    } catch (error) {
+      await db.messages.add({
+        id: generateId(),
+        role: "ASSISTANT",
+        content: `Generation failed: ${error instanceof Error ? error.message : "Network error"}`,
+        chatId: id,
+        createdAt: nowISO(),
+      });
+      await refreshMessages();
     } finally {
       setGenerating(false);
     }
@@ -77,10 +155,6 @@ export default function PresentationChatPage({
   // Latest slide version
   const latestSlideMsg = [...messages].reverse().find((m) => m.slideVersion);
   const latestSlide = latestSlideMsg?.slideVersion;
-
-  // Palette data from chat
-  const palette: PaletteColor[] = chat?.palette?.colors ?? [];
-  const slideTheme: SlideTheme = (chat?.slideTheme as SlideTheme) ?? "default";
 
   // ── Export PPTX ──
   const handleExportPptx = async () => {
