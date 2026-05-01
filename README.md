@@ -1,7 +1,7 @@
 # JEdithUI — AI Theme-Aware UI Code Generator
 
 > **Scan. Theme. Generate.**
-> Extract color palettes from screenshots or CSS, then generate production-ready, themed UI components and Marp slide decks using local Ollama models — entirely in your browser with no cloud API keys required.
+> Extract color palettes from screenshots or CSS, then generate production-ready, themed UI components and Marp slide decks using local and cloud Ollama models — entirely in your browser with no cloud API keys required.
 
 ---
 
