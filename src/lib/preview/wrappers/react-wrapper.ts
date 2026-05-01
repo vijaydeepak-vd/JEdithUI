@@ -28,7 +28,8 @@ export function buildReactWrapper(
   <!-- Babel Standalone (in-browser JSX compilation) -->
   <script src="/preview-assets/babel-standalone.min.js"></script>
 
-  <!-- lucide-react (served locally — same pattern as React/Babel) -->
+  <!-- lucide-react UMD expects global.react (lowercase) as its React peer -->
+  <script>window.react = window.React;</script>
   <script src="/preview-assets/lucide-react.umd.js"></script>
 
   <!-- clsx (served locally) -->
