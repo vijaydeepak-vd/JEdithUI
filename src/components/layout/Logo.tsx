@@ -12,9 +12,9 @@ export function Logo({ className, size = "md" }: LogoProps) {
     <div className={cn("flex items-center gap-2 font-bold select-none", sizes[size], className)}>
       <span className="text-jedith-copper">⟨/⟩</span>
       <span>
-        <span className="text-jedith-forest dark:text-jedith-sage">J</span>
+        <span className="text-jedith-sage">J</span>
         <span className="text-jedith-copper">Edith</span>
-        <span className="text-jedith-forest dark:text-jedith-sage">UI</span>
+        <span className="text-jedith-sage">UI</span>
       </span>
     </div>
   );

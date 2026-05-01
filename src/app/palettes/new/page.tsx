@@ -151,7 +151,7 @@ export default function NewPalettePage() {
               value={cssText}
               onChange={(e) => setCssText(e.target.value)}
               rows={10}
-              placeholder=":root {\n  --primary: #344620;\n  --accent: #d57a2a;\n}"
+              placeholder=":root {\n  --primary: #693FBD;\n  --accent: #FF9F66;\n}"
               className="mt-1 w-full px-3 py-2 rounded-lg border border-border bg-background text-sm font-mono focus:outline-none focus:ring-2 focus:ring-jedith-copper/50"
             />
             <button

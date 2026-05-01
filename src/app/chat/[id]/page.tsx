@@ -328,7 +328,7 @@ export default function ChatPage({
             </button>
             <button
               onClick={handleDownload}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-jedith-copper text-white text-xs font-semibold hover:bg-[#aa6122] transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-jedith-copper text-white text-xs font-semibold hover:bg-[#E6853A] transition-colors"
             >
               <Download className="w-3.5 h-3.5" />
               .{latestCode.language || "tsx"}

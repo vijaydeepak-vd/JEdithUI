@@ -32,9 +32,9 @@ export function PaletteEditor({
     initialColors.length > 0
       ? initialColors
       : [
-          { hex: "#344620", role: "primary", order: 0 },
-          { hex: "#eaeedd", role: "secondary", order: 1 },
-          { hex: "#d57a2a", role: "accent", order: 2 },
+          { hex: "#693FBD", role: "primary", order: 0 },
+          { hex: "#F8F0FF", role: "secondary", order: 1 },
+          { hex: "#FF9F66", role: "accent", order: 2 },
           { hex: "#FFFFFF", role: "background", order: 3 },
           { hex: "#363636", role: "text", order: 4 },
         ]

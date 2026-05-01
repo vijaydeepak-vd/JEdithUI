@@ -235,10 +235,10 @@ export default function Dashboard() {
 
         {/* Quick-start banner — only shown when everything is empty */}
         {palettes.length === 0 && totalChats === 0 && !loadingPalettes && !loadingChats && (
-          <div className="relative overflow-hidden rounded-2xl border border-jedith-forest/20 bg-gradient-to-br from-jedith-forest to-[#1a2310] p-6 text-white">
+          <div className="relative overflow-hidden rounded-2xl border border-jedith-forest/20 bg-gradient-to-br from-jedith-forest to-[#1a1025] p-6 text-white">
             <div className="absolute inset-0 opacity-10"
               style={{
-                backgroundImage: "radial-gradient(circle at 80% 50%, #d57a2a 0%, transparent 60%)",
+                backgroundImage: "radial-gradient(circle at 80% 50%, #FF9F66 0%, transparent 60%)",
               }}
             />
             <div className="relative z-10 flex items-center justify-between gap-4">
@@ -256,7 +256,7 @@ export default function Dashboard() {
               </div>
               <Link
                 href="/palettes/new"
-                className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 bg-jedith-copper text-white rounded-xl text-sm font-semibold hover:bg-[#aa6122] active:scale-95 transition-all shadow-lg"
+                className="flex-shrink-0 flex items-center gap-2 px-5 py-2.5 bg-jedith-copper text-white rounded-xl text-sm font-semibold hover:bg-[#E6853A] active:scale-95 transition-all shadow-lg"
               >
                 Start Now
                 <ArrowRight className="w-4 h-4" />
@@ -404,7 +404,7 @@ function EmptyState({
   const btnStyle =
     accent === "navy"
       ? "bg-jedith-forest hover:bg-jedith-forest-light"
-      : "bg-jedith-copper hover:bg-[#aa6122]";
+      : "bg-jedith-copper hover:bg-[#E6853A]";
 
   return (
     <div

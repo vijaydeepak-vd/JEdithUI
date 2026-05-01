@@ -20,8 +20,8 @@ interface SlideThemeSelectorProps {
 }
 
 export function SlideThemeSelector({ value, onChange, palette }: SlideThemeSelectorProps) {
-  const primaryColor = palette?.find((c) => c.role === "primary")?.hex || "#344620";
-  const accentColor = palette?.find((c) => c.role === "accent")?.hex || "#d57a2a";
+  const primaryColor = palette?.find((c) => c.role === "primary")?.hex || "#693FBD";
+  const accentColor = palette?.find((c) => c.role === "accent")?.hex || "#FF9F66";
   const bgColor = palette?.find((c) => c.role === "background")?.hex || "#FFFFFF";
 
   return (

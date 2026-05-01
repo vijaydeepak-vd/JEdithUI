@@ -278,7 +278,7 @@ export default function PresentationChatPage({
             <button
               onClick={handleExportPptx}
               disabled={exporting}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-jedith-copper text-white text-xs font-semibold hover:bg-[#aa6122] disabled:opacity-50 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-jedith-copper text-white text-xs font-semibold hover:bg-[#E6853A] disabled:opacity-50 transition-colors"
             >
               {exporting ? (
                 <Loader2 className="w-3.5 h-3.5 animate-spin" />

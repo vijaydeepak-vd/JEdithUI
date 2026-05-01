@@ -111,7 +111,7 @@ function getLibraryThemingInstructions(
       return [
         "### TanStack Table",
         `- Import from: import { useReactTable, getCoreRowModel, flexRender } from "@tanstack/react-table"`,
-        `- Style headers with: style={{ backgroundColor: '${colorMap.primary || "#344620"}', color: '${colorMap.text || "#ffffff"}' }}`,
+        `- Style headers with: style={{ backgroundColor: '${colorMap.primary || "#693FBD"}', color: '${colorMap.text || "#ffffff"}' }}`,
         `- Alternating rows: even rows use '${colorMap.surface || "#f5f5f5"}'`,
         "",
       ];
