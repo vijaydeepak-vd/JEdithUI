@@ -30,9 +30,9 @@ export function PaletteCard({
     <div className="group relative bg-card border border-border rounded-2xl overflow-hidden card-hover shadow-sm">
       {/* Color bar strip — full width at top */}
       <div className="flex h-2.5 color-bar">
-        {palette.colors.slice(0, 8).map((color) => (
+        {palette.colors.slice(0, 8).map((color, i) => (
           <div
-            key={color.role}
+            key={`${color.role}-${i}`}
             style={{ backgroundColor: color.hex }}
             title={`${color.role}: ${color.hex}`}
           />
@@ -71,9 +71,9 @@ export function PaletteCard({
 
         {/* Color dots row */}
         <div className="flex flex-wrap gap-1.5 mb-4">
-          {palette.colors.slice(0, 8).map((color) => (
+          {palette.colors.slice(0, 8).map((color, i) => (
             <div
-              key={color.role}
+              key={`${color.role}-${i}`}
               className="w-5 h-5 rounded-full border-2 border-white/10 shadow-sm ring-1 ring-white/5"
               style={{ backgroundColor: color.hex }}
               title={`${color.role}: ${color.hex}`}

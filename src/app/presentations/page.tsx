@@ -68,9 +68,9 @@ export default function PresentationsPage() {
 
               {chat.palette?.colors && (
                 <div className="hidden sm:flex gap-1">
-                  {chat.palette.colors.slice(0, 4).map((c) => (
+                  {chat.palette.colors.slice(0, 4).map((c, i) => (
                     <div
-                      key={c.role}
+                      key={`${c.role}-${i}`}
                       className="w-4 h-4 rounded-full border border-white shadow-sm"
                       style={{ backgroundColor: c.hex }}
                     />

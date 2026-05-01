@@ -44,8 +44,8 @@ export function ThemeSelector({ value, onChange, className }: ThemeSelectorProps
           )}
         >
           <div className="flex gap-1">
-            {palette.colors.slice(0, 5).map((c) => (
-              <ColorSwatch key={c.role} color={c} size="sm" />
+            {palette.colors.slice(0, 5).map((c, i) => (
+              <ColorSwatch key={`${c.role}-${i}`} color={c} size="sm" />
             ))}
           </div>
           <span className="text-sm font-medium text-foreground truncate">

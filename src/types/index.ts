@@ -51,32 +51,17 @@ export interface AttachedFile {
   base64?: string;       // base64 data (images, binary documents)
 }
 
-// ─── Ollama Types ────────────────────────────────────
+// ─── Model Types ─────────────────────────────────────
 
-export interface OllamaModel {
+export interface OllamaModelWithBadges {
   name: string;
-  model: string;
-  size: number;
-  digest: string;
-  modified_at: string;
-  details: {
-    parent_model: string;
-    format: string;
-    family: string;
-    families: string[];
-    parameter_size: string;
-    quantization_level: string;
-  };
-}
-
-export interface OllamaModelWithBadges extends OllamaModel {
   badges: ModelBadge[];
   isVision: boolean;
   isCode: boolean;
   sizeLabel: string;
 }
 
-export type ModelBadge = "recommended" | "vision" | "code" | "large";
+export type ModelBadge = "recommended" | "vision" | "code" | "large" | "thinking" | "tools";
 
 export interface OllamaStatus {
   connected: boolean;

@@ -2,7 +2,6 @@
 
 import { useOllamaModels } from "@/hooks/useOllamaModels";
 import { cn } from "@/lib/utils";
-import { formatBytes } from "@/lib/utils";
 import type { OllamaModelWithBadges } from "@/types";
 
 interface ModelSelectorProps {
@@ -14,7 +13,9 @@ interface ModelSelectorProps {
 
 const BADGE_ICON: Record<string, string> = {
   recommended: "⭐",
-  vision: "🖼️",
+  vision: "👁️",
+  thinking: "💭",
+  tools: "🔧",
   code: "💻",
   large: "🧠",
 };
@@ -23,14 +24,6 @@ export function ModelSelector({ value, onChange, visionOnly = false, className }
   const { models, visionModels, status, isLoading } = useOllamaModels();
 
   const displayModels = visionOnly ? visionModels : models;
-
-  if (!status.connected) {
-    return (
-      <div className={cn("px-3 py-2 rounded-lg border border-destructive/50 bg-destructive/5 text-sm text-destructive", className)}>
-        Ollama not connected
-      </div>
-    );
-  }
 
   if (isLoading) {
     return (
@@ -43,7 +36,7 @@ export function ModelSelector({ value, onChange, visionOnly = false, className }
   if (displayModels.length === 0) {
     return (
       <div className={cn("px-3 py-2 rounded-lg border border-border text-sm text-muted-foreground", className)}>
-        {visionOnly ? "No vision models — run ollama pull gemma4:e4b" : "No models installed"}
+        {visionOnly ? "No vision models available" : "No models configured"}
       </div>
     );
   }
@@ -66,11 +59,10 @@ export function ModelSelector({ value, onChange, visionOnly = false, className }
 
 function ModelOption({ model }: { model: OllamaModelWithBadges }) {
   const badgeIcons = model.badges.map((b) => BADGE_ICON[b]).filter(Boolean).join(" ");
-  const sizeStr = model.sizeLabel ? `${model.sizeLabel}` : formatBytes(model.size);
 
   return (
     <option value={model.name}>
-      {badgeIcons} {model.name} · {sizeStr}
+      {badgeIcons} {model.name}{model.sizeLabel ? ` · ${model.sizeLabel}` : ""}
     </option>
   );
 }

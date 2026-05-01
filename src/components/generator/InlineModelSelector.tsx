@@ -13,7 +13,9 @@ interface InlineModelSelectorProps {
 
 const BADGE_ICON: Record<string, string> = {
   recommended: "\u2B50",
-  vision: "\uD83D\uDDBC\uFE0F",
+  vision: "\uD83D\uDC41\uFE0F",
+  thinking: "\uD83D\uDCAD",
+  tools: "\uD83D\uDD27",
   code: "\uD83D\uDCBB",
   large: "\uD83E\uDDE0",
 };
@@ -28,9 +30,9 @@ export function InlineModelSelector({
   disabled = false,
   className,
 }: InlineModelSelectorProps) {
-  const { models, status } = useOllamaModels();
+  const { models } = useOllamaModels();
 
-  if (!status.connected || models.length === 0) {
+  if (models.length === 0) {
     return (
       <span className={cn("text-[11px] text-muted-foreground", className)}>
         {value}

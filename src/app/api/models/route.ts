@@ -3,10 +3,8 @@ import { listModels, getStatus } from "@/lib/ollama";
 
 export async function GET() {
   try {
-    const [models, status] = await Promise.all([
-      listModels().catch(() => []),
-      getStatus(),
-    ]);
+    const models = listModels();
+    const status = await getStatus();
     return NextResponse.json({ models, status });
   } catch {
     return NextResponse.json(

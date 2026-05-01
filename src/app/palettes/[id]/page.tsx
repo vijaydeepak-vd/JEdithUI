@@ -134,7 +134,7 @@ export default function PaletteDetailPage() {
         <div className="bg-card border border-border rounded-xl p-5 space-y-4">
           <div className="flex flex-wrap gap-2">
             {palette.colors.map((c, i) => (
-              <ColorSwatch key={i} color={c} size="lg" />
+              <ColorSwatch key={`${c.hex}-${c.role}-${i}`} color={c} size="lg" />
             ))}
           </div>
 
@@ -142,7 +142,7 @@ export default function PaletteDetailPage() {
           <div className="flex h-10 rounded-lg overflow-hidden">
             {palette.colors.map((c, i) => (
               <div
-                key={i}
+                key={`${c.hex}-${c.role}-${i}`}
                 className="flex-1"
                 style={{ backgroundColor: c.hex }}
                 title={`${c.role}: ${c.hex}`}

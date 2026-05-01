@@ -1,9 +1,14 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef } from "react";
 import { Plus, Save } from "lucide-react";
 import { ColorSwatch } from "./ColorSwatch";
 import type { PaletteColor, ColorRole } from "@/types";
+
+let nextColorId = 0;
+function genColorId() {
+  return `color-${Date.now()}-${nextColorId++}`;
+}
 
 interface PaletteEditorProps {
   initialName?: string;
@@ -35,10 +40,18 @@ export function PaletteEditor({
         ]
   );
 
+  // Stable IDs for React keys — survive add/delete without shifting
+  const colorKeys = useRef<string[]>(colors.map(() => genColorId()));
+  // Keep keys array in sync with colors length
+  while (colorKeys.current.length < colors.length) {
+    colorKeys.current.push(genColorId());
+  }
+
   const addColor = () => {
     const unusedRole =
       ROLE_SUGGESTIONS.find((r) => !colors.find((c) => c.role === r)) ||
       `color-${colors.length}`;
+    colorKeys.current.push(genColorId());
     setColors([...colors, { hex: "#888888", role: unusedRole as ColorRole, order: colors.length }]);
   };
 
@@ -51,6 +64,7 @@ export function PaletteEditor({
   };
 
   const deleteColor = (idx: number) => {
+    colorKeys.current.splice(idx, 1);
     setColors(colors.filter((_, i) => i !== idx).map((c, i) => ({ ...c, order: i })));
   };
 
@@ -82,7 +96,7 @@ export function PaletteEditor({
         <div className="mt-2 flex flex-wrap gap-4">
           {colors.map((color, idx) => (
             <ColorSwatch
-              key={idx}
+              key={colorKeys.current[idx]}
               color={color}
               editable
               size="lg"

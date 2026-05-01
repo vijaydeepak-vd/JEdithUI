@@ -1,5 +1,4 @@
 import type {
-  OllamaModel,
   OllamaModelWithBadges,
   OllamaStatus,
   OllamaChatMessage,
@@ -17,25 +16,62 @@ const OLLAMA_BASE_URL =
 
 const OLLAMA_API_KEY = process.env.OLLAMA_API_KEY || "";
 
-/** Default model when none is selected — cloud or local */
+/** Default model when none is selected */
 const DEFAULT_MODEL_NAME = process.env.OLLAMA_DEFAULT_MODEL || "gemma4:31b-cloud";
 
-// ─── Model Classification ──────────────────────────
+/**
+ * Available cloud models with capabilities — fully configured via env var.
+ *
+ * Format:  model-name|cap1|cap2|cap3, another-model|cap1|cap2
+ * Caps:    vision, thinking, tools, code
+ * Size:    auto-extracted from name (e.g. "31b" → "31B")
+ *
+ * Example:
+ *   OLLAMA_MODEL_LIST="gemma4:31b-cloud|vision|thinking|tools, ministral-3:14b-cloud|vision|tools"
+ */
+const MODEL_LIST_RAW = process.env.OLLAMA_MODEL_LIST || DEFAULT_MODEL_NAME;
 
-const VISION_FAMILIES = [
-  "gemma4",
-  "llava",
-  "bakllava",
-  "moondream",
-  "llava-llama3",
-];
-const CODE_FAMILIES = [
-  "codellama",
-  "deepseek-coder",
-  "starcoder",
-  "codegemma",
-  "qwen2.5-coder",
-];
+const VALID_CAPS = new Set(["vision", "thinking", "tools", "code"]);
+
+// ─── Static Model List ─────────────────────────────
+
+/** Parse a single "name|cap1|cap2" entry into a classified model. */
+function parseModelEntry(entry: string): OllamaModelWithBadges {
+  const parts = entry.split("|").map((s) => s.trim());
+  const name = parts[0];
+  const caps = parts.slice(1).filter((c) => VALID_CAPS.has(c));
+
+  const badges: ModelBadge[] = [];
+  const isVision = caps.includes("vision");
+  const isCode = caps.includes("code");
+
+  if (isVision) badges.push("vision");
+  if (caps.includes("thinking")) badges.push("thinking");
+  if (caps.includes("tools")) badges.push("tools");
+  if (isCode) badges.push("code");
+
+  // Extract param size from name (e.g. "31b", "397b", "14b")
+  const sizeMatch = name.toLowerCase().match(/(\d+)b/);
+  const sizeLabel = sizeMatch ? `${sizeMatch[1]}B` : "";
+  if (sizeMatch && parseInt(sizeMatch[1]) >= 13) badges.push("large");
+
+  // Mark default/recommended model
+  if (name === DEFAULT_MODEL_NAME) badges.push("recommended");
+
+  return { name, badges, isVision, isCode, sizeLabel };
+}
+
+/** Parse the env model list into classified model objects. */
+function buildModelList(): OllamaModelWithBadges[] {
+  return MODEL_LIST_RAW
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean)
+    .map(parseModelEntry);
+}
+
+/** Cached model list — built once from env at startup. */
+const CLOUD_MODELS = buildModelList();
 
 // ─── Shared Headers ────────────────────────────────
 
@@ -65,31 +101,22 @@ export async function checkConnection(): Promise<boolean> {
   }
 }
 
-export async function listModels(): Promise<OllamaModelWithBadges[]> {
-  const res = await fetch(`${OLLAMA_BASE_URL}/api/tags`, {
-    headers: buildHeaders(),
-  });
-  if (!res.ok) throw new Error(`Ollama error: ${res.status}`);
-  const data = await res.json();
-  return (data.models || []).map(classifyModel);
+/** Return the static list of available cloud models. */
+export function listModels(): OllamaModelWithBadges[] {
+  return CLOUD_MODELS;
 }
 
 export async function getStatus(): Promise<OllamaStatus> {
-  try {
-    const models = await listModels();
-    const defaultModel =
-      models.find((m) => m.name === DEFAULT_MODEL_NAME) ||
-      models.find((m) => m.name.includes("gemma4")) ||
-      models[0] ||
-      null;
-    return {
-      connected: true,
-      modelCount: models.length,
-      defaultModel: defaultModel?.name || null,
-    };
-  } catch {
-    return { connected: false, modelCount: 0, defaultModel: null };
-  }
+  const connected = await checkConnection();
+  const models = listModels();
+  const defaultModel =
+    models.find((m) => m.name === DEFAULT_MODEL_NAME) || models[0] || null;
+
+  return {
+    connected,
+    modelCount: models.length,
+    defaultModel: defaultModel?.name || null,
+  };
 }
 
 export async function chat(
@@ -148,40 +175,8 @@ export async function analyzeImage(
   return response.message.content;
 }
 
-/** Check if a model name likely supports vision (image) inputs. */
+/** Check if a model name supports vision (image) inputs. */
 export function isVisionModel(modelName: string): boolean {
-  const lower = modelName.toLowerCase();
-  return VISION_FAMILIES.some((f) => lower.includes(f));
-}
-
-// ─── Model Classification ──────────────────────────
-
-function classifyModel(model: OllamaModel): OllamaModelWithBadges {
-  const family = model.details?.family?.toLowerCase() || "";
-  const families = (model.details?.families || []).map((f) => f.toLowerCase());
-  const allFamilies = [family, ...families];
-  const paramSize = model.details?.parameter_size || "";
-  const modelName = model.name?.toLowerCase() || "";
-
-  const badges: ModelBadge[] = [];
-  const isVision = allFamilies.some((f) => VISION_FAMILIES.includes(f)) ||
-    modelName.includes("gemma4");
-  const isCode = allFamilies.some((f) => CODE_FAMILIES.includes(f));
-
-  if (isVision) badges.push("vision");
-  if (isCode) badges.push("code");
-
-  const sizeNum = parseFloat(paramSize);
-  if (sizeNum >= 13) badges.push("large");
-
-  // Mark default/recommended model
-  if (
-    model.name === DEFAULT_MODEL_NAME ||
-    family === "gemma4" ||
-    modelName.includes("gemma4")
-  ) {
-    badges.push("recommended");
-  }
-
-  return { ...model, badges, isVision, isCode, sizeLabel: paramSize };
+  const model = CLOUD_MODELS.find((m) => m.name === modelName);
+  return model?.isVision ?? false;
 }

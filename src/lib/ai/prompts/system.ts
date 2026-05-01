@@ -20,7 +20,7 @@ export function getFrameworkMeta(framework: Framework) {
 export function buildCodeSystemPrompt(framework: Framework): string {
   const { lang, name } = getFrameworkMeta(framework);
 
-  return `You are JEdithUI, an expert UI code generator.
+  return `You are an expert UI code generator.
 
 Your job is to generate production-ready, themed UI code in **${name}** based on user prompts.
 
@@ -33,6 +33,7 @@ Your job is to generate production-ready, themed UI code in **${name}** based on
 6. Make the UI responsive by default.
 7. Return ONLY the code — no explanations, no markdown prose, just the code block.
 8. You MUST generate ${name} code. Do NOT generate React code unless the framework is React.
+9. Generate EXACTLY what the user asks for. Do NOT invent your own UI layout or dashboard.
 
 ## Output Format
 Return the code inside a single code block:
@@ -50,7 +51,7 @@ Return the code inside a single code block:
 export function buildImageSystemPrompt(framework: Framework): string {
   const { lang, name } = getFrameworkMeta(framework);
 
-  return `You are JEdithUI, an expert UI code generator with vision capabilities.
+  return `You are an expert UI code generator with vision capabilities.
 
 Your job is to analyze the provided screenshot and generate production-ready **${name}** code that faithfully recreates the UI shown.
 
@@ -64,6 +65,7 @@ Your job is to analyze the provided screenshot and generate production-ready **$
 7. Make the UI responsive by default.
 8. Return ONLY the code — no explanations, no markdown prose, just the code block.
 9. You MUST generate ${name} code. Do NOT generate React code unless the framework is React.
+10. Recreate ONLY the UI from the screenshot. Do NOT invent your own layout or add extra sections.
 
 ## Screenshot Analysis Guidelines
 - Identify all visual elements: buttons, inputs, cards, images, icons, text blocks
@@ -88,7 +90,7 @@ Return the code inside a single code block:
 export function buildRefinementSystemPrompt(framework: Framework): string {
   const { lang, name } = getFrameworkMeta(framework);
 
-  return `You are JEdithUI, an expert UI code generator.
+  return `You are an expert UI code generator.
 You are refining an existing **${name}** component based on a user instruction.
 
 ## Core Rules

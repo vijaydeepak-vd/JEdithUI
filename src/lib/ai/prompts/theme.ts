@@ -55,8 +55,8 @@ function getLibraryThemingInstructions(
       return [
         "### Tailwind CSS",
         `- Use inline styles or CSS variables for palette colors since they are custom.`,
-        `- Style with: style={{ backgroundColor: '${colorMap.primary || "#344620"}' }}`,
-        `- Or use Tailwind's arbitrary values: className="bg-[${colorMap.primary || "#344620"}]"`,
+        `- Style with: style={{ backgroundColor: '${colorMap.primary || "#3b82f6"}' }}`,
+        `- Or use Tailwind's arbitrary values: className="bg-[${colorMap.primary || "#3b82f6"}]"`,
         "",
       ];
     case "shadcn":
@@ -64,14 +64,14 @@ function getLibraryThemingInstructions(
         "### shadcn/ui",
         `- Import from: import { Button } from "@/components/ui/button"`,
         `- Use variant="default" for primary actions (maps to --primary CSS var)`,
-        `- Override with style prop for palette colors: style={{ backgroundColor: '${colorMap.accent || "#d57a2a"}' }}`,
+        `- Override with style prop for palette colors: style={{ backgroundColor: '${colorMap.accent || "#f59e0b"}' }}`,
         "",
       ];
     case "mui":
       return [
         "### Material UI (MUI)",
         `- Import from: import { Button, Box } from "@mui/material"`,
-        `- Create theme: const theme = createTheme({ palette: { primary: { main: '${colorMap.primary || "#344620"}' }, secondary: { main: '${colorMap.secondary || "#eaeedd"}' } } })`,
+        `- Create theme: const theme = createTheme({ palette: { primary: { main: '${colorMap.primary || "#3b82f6"}' }, secondary: { main: '${colorMap.secondary || "#e2e8f0"}' } } })`,
         `- Wrap with: <ThemeProvider theme={theme}>`,
         "",
       ];
@@ -79,32 +79,32 @@ function getLibraryThemingInstructions(
       return [
         "### Ant Design",
         `- Import from: import { Button, Table } from "antd"`,
-        `- Use ConfigProvider: <ConfigProvider theme={{ token: { colorPrimary: '${colorMap.primary || "#344620"}', colorBgContainer: '${colorMap.surface || "#ffffff"}' } }}>`,
+        `- Use ConfigProvider: <ConfigProvider theme={{ token: { colorPrimary: '${colorMap.primary || "#3b82f6"}', colorBgContainer: '${colorMap.surface || "#ffffff"}' } }}>`,
         "",
       ];
     case "chakra":
       return [
         "### Chakra UI",
         `- Import from: import { Box, Button, Text } from "@chakra-ui/react"`,
-        `- Extend theme: extendTheme({ colors: { brand: { 500: '${colorMap.primary || "#344620"}' } } })`,
+        `- Extend theme: extendTheme({ colors: { brand: { 500: '${colorMap.primary || "#3b82f6"}' } } })`,
         `- Wrap with: <ChakraProvider theme={theme}>`,
-        `- Use brand colors: colorScheme="brand" or color="${colorMap.accent || "#d57a2a"}"`,
+        `- Use brand colors: colorScheme="brand" or color="${colorMap.accent || "#f59e0b"}"`,
         "",
       ];
     case "mantine":
       return [
         "### Mantine",
         `- Import from: import { Button, Card, TextInput } from "@mantine/core"`,
-        `- Use MantineProvider: <MantineProvider theme={{ primaryColor: 'brand', colors: { brand: ['${colorMap.primary || "#344620"}'] } }}>`,
-        `- Override with: style={{ backgroundColor: '${colorMap.primary || "#344620"}' }}`,
+        `- Use MantineProvider: <MantineProvider theme={{ primaryColor: 'brand', colors: { brand: ['${colorMap.primary || "#3b82f6"}'] } }}>`,
+        `- Override with: style={{ backgroundColor: '${colorMap.primary || "#3b82f6"}' }}`,
         "",
       ];
     case "recharts":
       return [
         "### Recharts",
         `- Import from: import { BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer } from "recharts"`,
-        `- Use palette colors for fills: <Bar fill="${colorMap.primary || "#344620"}" />`,
-        `- Accent for highlights: <Bar fill="${colorMap.accent || "#d57a2a"}" />`,
+        `- Use palette colors for fills: <Bar fill="${colorMap.primary || "#3b82f6"}" />`,
+        `- Accent for highlights: <Bar fill="${colorMap.accent || "#f59e0b"}" />`,
         "",
       ];
     case "react-table":

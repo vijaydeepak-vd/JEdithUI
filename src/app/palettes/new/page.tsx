@@ -130,7 +130,7 @@ export default function NewPalettePage() {
             <div className="space-y-4">
               <div className="flex flex-wrap gap-3">
                 {extractedColors.map((c, i) => (
-                  <ColorSwatch key={i} color={c} size="lg" />
+                  <ColorSwatch key={`${c.hex}-${c.role}-${i}`} color={c} size="lg" />
                 ))}
               </div>
               <PaletteEditor
@@ -166,7 +166,7 @@ export default function NewPalettePage() {
           {cssColors.length > 0 && (
             <div className="space-y-4">
               <div className="flex flex-wrap gap-3">
-                {cssColors.map((c, i) => <ColorSwatch key={i} color={c} size="lg" />)}
+                {cssColors.map((c, i) => <ColorSwatch key={`${c.hex}-${c.role}-${i}`} color={c} size="lg" />)}
               </div>
               <PaletteEditor initialColors={cssColors} onSave={handleSave} saving={saving} />
             </div>
