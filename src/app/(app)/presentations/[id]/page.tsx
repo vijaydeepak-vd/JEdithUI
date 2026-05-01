@@ -10,9 +10,15 @@ import { PromptInput } from "@/components/generator/PromptInput";
 import { InlineModelSelector } from "@/components/generator/InlineModelSelector";
 import { SlidePreview } from "@/components/chat/SlidePreview";
 import { SlideFilmstrip } from "@/components/chat/SlideFilmstrip";
+import { QuotaExceededModal } from "@/components/ui/QuotaExceededModal";
 import { timeAgo, generateChatName } from "@/lib/utils";
 import { buildFileContext } from "@/lib/file-reader";
 import { consumePendingAttachments } from "@/lib/pending-attachments";
+import { dailyQuotaErrorCode } from "@/lib/rate-limit-constants";
+import {
+  updatePromptQuotaFromHeaders,
+  updatePromptQuotaFromPayload,
+} from "@/lib/prompt-quota-client";
 import type { PaletteColor, SlideTheme, AttachedFile } from "@/types";
 
 function PresentationChatPageInner({
@@ -36,6 +42,8 @@ function PresentationChatPageInner({
   const [exporting, setExporting] = useState(false);
   const [copied, setCopied] = useState(false);
   const [currentSlide, setCurrentSlide] = useState(0);
+  const [quotaResetAt, setQuotaResetAt] = useState<string | undefined>();
+  const [quotaModalOpen, setQuotaModalOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -76,8 +84,9 @@ function PresentationChatPageInner({
     }
 
     // Save user message in IndexedDB
+    const userMsgId = generateId();
     await db.messages.add({
-      id: generateId(),
+      id: userMsgId,
       role: "USER",
       content: prompt,
       chatId: id,
@@ -110,7 +119,18 @@ function PresentationChatPageInner({
         }),
       });
 
+      updatePromptQuotaFromHeaders(res.headers);
+
       const data = await res.json();
+
+      if (res.status === 429 && data.code === dailyQuotaErrorCode) {
+        updatePromptQuotaFromPayload(data);
+        await db.messages.delete(userMsgId);
+        setQuotaResetAt(data.resetAt);
+        setQuotaModalOpen(true);
+        await refreshMessages();
+        return;
+      }
 
       if (res.ok && data.markdown) {
         // Save assistant message + slide version in IndexedDB
@@ -403,6 +423,12 @@ function PresentationChatPageInner({
           </div>
         </div>
       </div>
+
+      <QuotaExceededModal
+        open={quotaModalOpen}
+        resetAt={quotaResetAt}
+        onClose={() => setQuotaModalOpen(false)}
+      />
     </div>
   );
 }

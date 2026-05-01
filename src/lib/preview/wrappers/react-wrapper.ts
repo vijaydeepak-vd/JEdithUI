@@ -28,6 +28,18 @@ export function buildReactWrapper(
   <!-- Babel Standalone (in-browser JSX compilation) -->
   <script src="/preview-assets/babel-standalone.min.js"></script>
 
+  <!-- lucide-react (served locally — same pattern as React/Babel) -->
+  <script src="/preview-assets/lucide-react.umd.js"></script>
+
+  <!-- clsx (served locally) -->
+  <script src="/preview-assets/clsx.min.js"></script>
+
+  <!-- Safety net: ensure globals exist even if a script fails -->
+  <script>
+    window.LucideReact = window.LucideReact || {};
+    window.clsx = window.clsx || function() { return ''; };
+  </script>
+
   ${cdnTags}
 
   <style>
@@ -41,12 +53,26 @@ export function buildReactWrapper(
 <body>
   <div id="root"></div>
   <script type="text/babel" data-presets="react,typescript">
+    class ErrorBoundary extends React.Component {
+      constructor(props) { super(props); this.state = { error: null }; }
+      static getDerivedStateFromError(error) { return { error }; }
+      render() {
+        if (this.state.error) {
+          return React.createElement('div', {
+            style: { padding: 20, background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 8, fontFamily: 'monospace', color: '#991b1b' }
+          }, React.createElement('strong', null, 'Preview Error'), React.createElement('br'), String(this.state.error));
+        }
+        return this.props.children;
+      }
+    }
+
     ${sanitizeCode(transformedCode)}
 
     const rootEl = document.getElementById('root');
     if (rootEl) {
       const root = ReactDOM.createRoot(rootEl);
-      root.render(React.createElement(typeof App !== 'undefined' ? App : () => React.createElement('div', null, 'No App component found')));
+      const AppComponent = typeof App !== 'undefined' ? App : () => React.createElement('div', null, 'No App component found');
+      root.render(React.createElement(ErrorBoundary, null, React.createElement(AppComponent)));
     }
   </script>
   <script>
@@ -90,19 +116,16 @@ const GLOBAL_MAP: Record<string, string> = {
   // UI libraries (loaded via CDN when selected)
   "@mui/material": "MaterialUI",
   "@mui/icons-material": "MaterialUI",
-  "@mui/lab": "MaterialUI",
   antd: "antd",
   "@ant-design/icons": "icons",
   "@chakra-ui/react": "ChakraUI",
-  "@chakra-ui/icons": "ChakraUI",
   "@mantine/core": "MantineCore",
   "@mantine/hooks": "MantineHooks",
   recharts: "Recharts",
-  "@tanstack/react-table": "TanStackReactTable",
+  "@tanstack/react-table": "ReactTable",
 
   // Common extras the AI might import
   "lucide-react": "LucideReact",
-  "framer-motion": "FramerMotion",
   clsx: "clsx",
 };
 
@@ -134,6 +157,41 @@ function normalizeNamedImports(raw: string): string {
 }
 
 /**
+ * Extract the local binding names from a named import clause.
+ * `Button, Card as MyCard` → ["Button", "MyCard"]
+ */
+function parseLocalNames(namedRaw: string): string[] {
+  return namedRaw
+    .split(",")
+    .map((n) => n.trim())
+    .filter(Boolean)
+    .map((n) => {
+      const alias = n.match(/\w+\s+as\s+(\w+)/);
+      return alias ? alias[1] : n.replace(/[^a-zA-Z0-9_$].*/, "").trim();
+    })
+    .filter((n) => /^\w+$/.test(n));
+}
+
+/**
+ * Generate safe stubs for names imported from a package the sandbox can't resolve.
+ * Capitalized names → passthrough component div wrapper (safe in JSX).
+ * Lowercase names → no-op function (safe to call).
+ */
+function generateStubs(localNames: string[], source: string): string {
+  const lines = [`// [preview - unresolved import: ${source}]`];
+  for (const name of localNames) {
+    if (/^[A-Z]/.test(name)) {
+      lines.push(
+        `const ${name} = ({ children, className, style, ...p }) => React.createElement('div', { className, style }, children);`
+      );
+    } else {
+      lines.push(`const ${name} = (..._args) => null;`);
+    }
+  }
+  return lines.join("\n");
+}
+
+/**
  * Transform ES module code into browser-compatible code:
  * - `import { X } from 'lib'` → `const { X } = GlobalLib;`
  * - `export default function App` → `function App`
@@ -150,11 +208,11 @@ function transformForBrowser(code: string): string {
         /^import\s+(\w+)\s*,\s*\{([^}]+)\}\s+from\s+['"]([^'"]+)['"];?\s*$/gm,
         (match, defName, namedRaw, source) => {
           const g = resolveGlobal(source);
-          if (!g) return `// [preview] ${match.trim()}`;
+          if (!g) return generateStubs([defName, ...parseLocalNames(namedRaw)], source);
           const named = normalizeNamedImports(namedRaw);
           const parts: string[] = [];
-          if (defName !== g) parts.push(`const ${defName} = ${g};`);
-          if (named) parts.push(`const { ${named} } = ${g};`);
+          if (defName !== g) parts.push(`const ${defName} = (typeof ${g} !== 'undefined' ? ${g} : {});`);
+          if (named) parts.push(`const { ${named} } = (typeof ${g} !== 'undefined' ? ${g} : {});`);
           return parts.join("\n");
         }
       )
@@ -164,9 +222,9 @@ function transformForBrowser(code: string): string {
         /^import\s+\{([^}]+)\}\s+from\s+['"]([^'"]+)['"];?\s*$/gm,
         (match, namedRaw, source) => {
           const g = resolveGlobal(source);
-          if (!g) return `// [preview] ${match.trim()}`;
+          if (!g) return generateStubs(parseLocalNames(namedRaw), source);
           const named = normalizeNamedImports(namedRaw);
-          return named ? `const { ${named} } = ${g} || {};` : "";
+          return named ? `const { ${named} } = (typeof ${g} !== 'undefined' ? ${g} : {});` : "";
         }
       )
 
@@ -175,8 +233,8 @@ function transformForBrowser(code: string): string {
         /^import\s+(\w+)\s+from\s+['"]([^'"]+)['"];?\s*$/gm,
         (match, name, source) => {
           const g = resolveGlobal(source);
-          if (!g) return `// [preview] ${match.trim()}`;
-          return name === g ? "" : `const ${name} = ${g};`;
+          if (!g) return generateStubs([name], source);
+          return name === g ? "" : `const ${name} = (typeof ${g} !== 'undefined' ? ${g} : {});`;
         }
       )
 
@@ -185,8 +243,8 @@ function transformForBrowser(code: string): string {
         /^import\s+\*\s+as\s+(\w+)\s+from\s+['"]([^'"]+)['"];?\s*$/gm,
         (_, name, source) => {
           const g = resolveGlobal(source);
-          if (!g) return "";
-          return name === g ? "" : `const ${name} = ${g};`;
+          if (!g) return generateStubs([name], source);
+          return name === g ? "" : `const ${name} = (typeof ${g} !== 'undefined' ? ${g} : {});`;
         }
       )
 

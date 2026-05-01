@@ -62,9 +62,10 @@ function getLibraryThemingInstructions(
     case "shadcn":
       return [
         "### shadcn/ui",
-        `- Import from: import { Button } from "@/components/ui/button"`,
-        `- Use variant="default" for primary actions (maps to --primary CSS var)`,
-        `- Override with style prop for palette colors: style={{ backgroundColor: '${colorMap.accent || "#f59e0b"}' }}`,
+        `- shadcn/ui has NO CDN — do NOT import from "@/components/ui/*" paths.`,
+        `- Instead, implement components inline using plain HTML elements styled with Tailwind CSS utility classes.`,
+        `- Style buttons, cards, inputs etc. directly: <button className="px-4 py-2 rounded-md bg-[${colorMap.primary || "#3b82f6"}] text-white hover:opacity-90">`,
+        `- Use palette colors via inline style or Tailwind arbitrary values: bg-[${colorMap.primary || "#3b82f6"}]`,
         "",
       ];
     case "mui":

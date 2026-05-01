@@ -34,6 +34,8 @@ const CDN_MAP: Record<UILibrary, CDNEntry> = {
     scripts: [
       '<script src="https://unpkg.com/dayjs/dayjs.min.js"></script>',
       '<script src="https://unpkg.com/antd@5/dist/antd.min.js"></script>',
+      // @ant-design/icons UMD — exposes window.icons
+      '<script src="https://unpkg.com/@ant-design/icons/dist/index.umd.min.js" crossorigin="anonymous"></script>',
     ],
   },
   chakra: {
@@ -48,6 +50,8 @@ const CDN_MAP: Record<UILibrary, CDNEntry> = {
     ],
     scripts: [
       '<script src="https://unpkg.com/@mantine/core/dist/mantine-core.umd.min.js" crossorigin="anonymous"></script>',
+      // @mantine/hooks UMD — exposes window.MantineHooks
+      '<script src="https://unpkg.com/@mantine/hooks/dist/mantine-hooks.umd.min.js" crossorigin="anonymous"></script>',
     ],
   },
   recharts: {
@@ -59,7 +63,8 @@ const CDN_MAP: Record<UILibrary, CDNEntry> = {
   "react-table": {
     links: [],
     scripts: [
-      '<script src="https://unpkg.com/@tanstack/react-table/build/umd/index.development.js" crossorigin="anonymous"></script>',
+      // Production UMD build — exposes window.ReactTable
+      '<script src="https://unpkg.com/@tanstack/react-table/build/umd/index.production.js" crossorigin="anonymous"></script>',
     ],
   },
 };

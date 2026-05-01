@@ -7,17 +7,20 @@
     "build": "NODE_PATH=./node_modules node node_modules/next/dist/bin/next build",
     "start": "NODE_PATH=./node_modules node node_modules/next/dist/bin/next start",
     "lint": "next lint",
-    "lint:ts": "tsc --noEmit"
+    "lint:ts": "tsc --noEmit",
+    "vercel:link": "vercel link",
+    "vercel:env:pull": "vercel env pull .env.local"
   },
   "dependencies": {
     "@babel/parser": "^7.24.0",
     "@marp-team/marp-core": "^4.0.0",
-    "pptxgenjs": "^4.0.1",
+    "@upstash/redis": "^1.37.0",
     "clsx": "^2.1.1",
     "dexie": "^4.4.2",
     "lucide-react": "^0.400.0",
     "nanoid": "^5.0.7",
     "next": "16.1.6",
+    "pptxgenjs": "^4.0.1",
     "prettier": "^3.3.2",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
@@ -40,6 +43,7 @@
     "postcss": "^8.4.38",
     "tailwindcss": "^3.4.4",
     "tailwindcss-animate": "^1.0.7",
-    "typescript": "^5.5.2"
+    "typescript": "^5.5.2",
+    "vercel": "^53.0.1"
   }
 }

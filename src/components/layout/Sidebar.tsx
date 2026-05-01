@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
 import { usePathname } from "next/navigation";
 import {
   Palette,
@@ -12,6 +13,12 @@ import {
 } from "lucide-react";
 import { OllamaStatus } from "./OllamaStatus";
 import { cn } from "@/lib/utils";
+import { dailyPromptLimit } from "@/lib/rate-limit-constants";
+import {
+  promptQuotaUpdatedEvent,
+  readPromptQuotaSnapshot,
+  type PromptQuotaSnapshot,
+} from "@/lib/prompt-quota-client";
 
 const NAV_ITEMS = [
   { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
@@ -23,6 +30,41 @@ const NAV_ITEMS = [
 
 export function Sidebar() {
   const pathname = usePathname();
+  const [quota, setQuota] = useState<PromptQuotaSnapshot | null>(null);
+
+  useEffect(() => {
+    const sync = () => setQuota(readPromptQuotaSnapshot());
+
+    sync();
+    window.addEventListener(promptQuotaUpdatedEvent, sync);
+    window.addEventListener("storage", sync);
+
+    return () => {
+      window.removeEventListener(promptQuotaUpdatedEvent, sync);
+      window.removeEventListener("storage", sync);
+    };
+  }, []);
+
+  const limit = quota?.limit ?? dailyPromptLimit;
+  const remaining = quota?.remaining ?? limit;
+  const used = Math.max(0, limit - remaining);
+  const usedPercent = useMemo(() => {
+    if (limit <= 0) return 0;
+    return Math.min(100, Math.round((used / limit) * 100));
+  }, [limit, used]);
+
+  const resetTimeLabel = useMemo(() => {
+    if (!quota?.resetAt) return "Resets at next UTC midnight";
+
+    const reset = new Date(quota.resetAt);
+    if (Number.isNaN(reset.getTime())) return "Resets at next UTC midnight";
+
+    return `Resets ${reset.toLocaleTimeString([], {
+      hour: "numeric",
+      minute: "2-digit",
+      timeZoneName: "short",
+    })}`;
+  }, [quota?.resetAt]);
 
   return (
     <aside className="w-60 flex-shrink-0 h-screen flex flex-col sidebar-gradient">
@@ -83,8 +125,23 @@ export function Sidebar() {
         })}
       </nav>
 
-      {/* Footer: Ollama status */}
+      {/* Footer: daily credits + Ollama status */}
       <div className="px-3 pb-4">
+        <div className="rounded-xl bg-white/6 px-3 py-2.5 border border-white/8 mb-2.5">
+          <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-white/45">
+            <span>Daily Credits</span>
+            <span>{remaining}/{limit}</span>
+          </div>
+          <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
+            <div
+              className="h-full rounded-full bg-jedith-copper transition-all duration-300"
+              style={{ width: `${usedPercent}%` }}
+            />
+          </div>
+          <p className="mt-2 text-[11px] text-white/65">
+            {used} used today. {resetTimeLabel}
+          </p>
+        </div>
         <div className="rounded-xl bg-white/6 px-3 py-2.5 border border-white/8">
           <OllamaStatus />
         </div>

@@ -19,11 +19,17 @@ import { db, generateId, nowISO } from "@/lib/db-client";
 import { PromptInput } from "@/components/generator/PromptInput";
 import { InlineModelSelector } from "@/components/generator/InlineModelSelector";
 import { CodePreview } from "@/components/chat/CodePreview";
+import { QuotaExceededModal } from "@/components/ui/QuotaExceededModal";
 import { SkillNameModal } from "@/components/ui/SkillNameModal";
 import { timeAgo, generateChatName } from "@/lib/utils";
 import { buildFileContext, getFirstImageBase64 } from "@/lib/file-reader";
 import { consumePendingAttachments } from "@/lib/pending-attachments";
 import { useOllamaModels } from "@/hooks/useOllamaModels";
+import { dailyQuotaErrorCode } from "@/lib/rate-limit-constants";
+import {
+  updatePromptQuotaFromHeaders,
+  updatePromptQuotaFromPayload,
+} from "@/lib/prompt-quota-client";
 import type { MessageData, PaletteColor, Framework, UILibrary, AttachedFile } from "@/types";
 
 type LeftTab = "preview" | "code";
@@ -52,6 +58,8 @@ function ChatPageInner({
   const [copied, setCopied] = useState(false);
   const [downloadingSkill, setDownloadingSkill] = useState(false);
   const [skillModalOpen, setSkillModalOpen] = useState(false);
+  const [quotaResetAt, setQuotaResetAt] = useState<string | undefined>();
+  const [quotaModalOpen, setQuotaModalOpen] = useState(false);
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   // Check if current model supports vision
@@ -137,7 +145,18 @@ function ChatPageInner({
         }),
       });
 
+      updatePromptQuotaFromHeaders(res.headers);
+
       const data = await res.json();
+
+      if (res.status === 429 && data.code === dailyQuotaErrorCode) {
+        updatePromptQuotaFromPayload(data);
+        await db.messages.delete(userMsgId);
+        setQuotaResetAt(data.resetAt);
+        setQuotaModalOpen(true);
+        await refreshMessages();
+        return;
+      }
 
       if (res.ok && data.code) {
         // Save assistant message + code version in IndexedDB
@@ -532,6 +551,12 @@ function ChatPageInner({
         defaultName={chat.name}
         onConfirm={handleDownloadSkill}
         onCancel={() => setSkillModalOpen(false)}
+      />
+
+      <QuotaExceededModal
+        open={quotaModalOpen}
+        resetAt={quotaResetAt}
+        onClose={() => setQuotaModalOpen(false)}
       />
     </div>
   );

@@ -1,6 +1,11 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateCode } from "@/lib/ai/generate-code";
 import { isVisionModel } from "@/lib/ollama";
+import {
+  buildQuotaExceededPayload,
+  consumeDailyPromptCredit,
+  getClientIp,
+} from "@/lib/rate-limit";
 import { z } from "zod";
 import type { UILibrary, Framework, PaletteColor } from "@/types";
 
@@ -35,6 +40,11 @@ export async function POST(req: NextRequest) {
   const parsed = GenerateSchema.safeParse(body);
   if (!parsed.success)
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
+
+  const quota = await consumeDailyPromptCredit(getClientIp(req));
+  if (!quota.allowed) {
+    return NextResponse.json(buildQuotaExceededPayload(quota), { status: 429 });
+  }
 
   const { prompt, model, palette, libraries, framework, existingCode, imageBase64, fileContext, chatHistory } =
     parsed.data;
@@ -72,11 +82,17 @@ export async function POST(req: NextRequest) {
       })),
     });
 
-    return NextResponse.json({
+    const response = NextResponse.json({
       code: result.code,
       language: result.language,
       warnings: [...extraWarnings, ...result.warnings],
     });
+
+    response.headers.set("X-RateLimit-Limit", String(quota.limit));
+    response.headers.set("X-RateLimit-Remaining", String(quota.remaining));
+    response.headers.set("X-RateLimit-Reset", quota.resetAt);
+
+    return response;
   } catch (error) {
     return NextResponse.json(
       { error: error instanceof Error ? error.message : "Generation failed" },

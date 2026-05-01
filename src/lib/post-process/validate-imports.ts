@@ -6,10 +6,10 @@ import type { UILibrary } from "@/types";
  */
 const VALID_IMPORTS: Record<UILibrary, string[]> = {
   tailwind: [], // No imports — class-based
-  shadcn: ["@/components/ui/"],
-  mui: ["@mui/material", "@mui/icons-material", "@mui/lab", "@emotion/react", "@emotion/styled"],
+  shadcn: [], // No CDN — prompt tells AI to use inline Tailwind instead
+  mui: ["@mui/material", "@mui/icons-material", "@emotion/react", "@emotion/styled"],
   antd: ["antd", "@ant-design/icons"],
-  chakra: ["@chakra-ui/react", "@chakra-ui/icons"],
+  chakra: ["@chakra-ui/react"],
   mantine: ["@mantine/core", "@mantine/hooks", "@mantine/dates", "@mantine/form"],
   recharts: ["recharts"],
   "react-table": ["@tanstack/react-table"],
@@ -36,6 +36,8 @@ export function validateImports(
 
     // Always allow react and react-dom
     if (source.startsWith("react") || source === "react-dom") continue;
+    // Always allow sandbox-provided packages (lucide-react, clsx)
+    if (source === "lucide-react" || source === "clsx") continue;
     // Allow relative imports
     if (source.startsWith(".") || source.startsWith("@/")) continue;
     // Allow node built-ins
