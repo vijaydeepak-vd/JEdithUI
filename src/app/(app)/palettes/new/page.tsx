@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { PaletteEditor } from "@/components/palette/PaletteEditor";
@@ -13,7 +13,7 @@ import type { PaletteColor, PaletteSource } from "@/types";
 import { Loader2, ArrowLeft } from "lucide-react";
 import Link from "next/link";
 
-export default function NewPalettePage() {
+function NewPalettePageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialMode = searchParams.get("mode") || "manual";
@@ -174,5 +174,13 @@ export default function NewPalettePage() {
         </TabsContent>
       </Tabs>
     </div>
+  );
+}
+
+export default function NewPalettePage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin w-6 h-6 border-2 border-jedith-copper border-t-transparent rounded-full" /></div>}>
+      <NewPalettePageInner />
+    </Suspense>
   );
 }

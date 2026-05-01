@@ -1,31 +1,30 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowLeft, Loader2 } from "lucide-react";
 import Link from "next/link";
-import { FrameworkSelector } from "@/components/generator/FrameworkSelector";
-import { LibrarySelector } from "@/components/generator/LibrarySelector";
-import { ModelSelector } from "@/components/generator/ModelSelector";
+import { SlideThemeSelector } from "@/components/generator/SlideThemeSelector";
 import { ThemeSelector } from "@/components/generator/ThemeSelector";
+import { ModelSelector } from "@/components/generator/ModelSelector";
 import { PromptInput } from "@/components/generator/PromptInput";
 import { useChats } from "@/hooks/useChat";
 import { useOllamaModels } from "@/hooks/useOllamaModels";
-import { getCompatibleLibraries } from "@/lib/ai/library-configs";
+import { usePalettes } from "@/hooks/usePalettes";
 import { setPendingAttachments } from "@/lib/pending-attachments";
-import type { Framework, UILibrary, AttachedFile } from "@/types";
+import type { SlideTheme, AttachedFile } from "@/types";
 
-export default function NewChatPage() {
+function NewPresentationPageInner() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const initialPaletteId = searchParams.get("paletteId") || "";
 
-  const { createChat } = useChats("CODE");
+  const { createChat } = useChats("PRESENTATION");
   const { defaultModel } = useOllamaModels();
+  const { palettes } = usePalettes();
 
-  const [framework, setFramework] = useState<Framework>("REACT");
-  const [libraries, setLibraries] = useState<UILibrary[]>(["tailwind"]);
-  const [primaryLib, setPrimaryLib] = useState<UILibrary>("tailwind");
+  const [name, setName] = useState("");
+  const [slideTheme, setSlideTheme] = useState<SlideTheme>("business");
   const [model, setModel] = useState("");
   const [paletteId, setPaletteId] = useState(initialPaletteId);
   const [creating, setCreating] = useState(false);
@@ -34,54 +33,55 @@ export default function NewChatPage() {
     if (defaultModel && !model) setModel(defaultModel.name);
   }, [defaultModel, model]);
 
-  // Auto-clean incompatible libraries when framework changes
-  useEffect(() => {
-    const compatible = getCompatibleLibraries(framework);
-    const filtered = libraries.filter((l) => compatible.includes(l));
-    // If nothing remains, default to tailwind (universally compatible)
-    const next = filtered.length > 0 ? filtered : compatible.includes("tailwind") ? ["tailwind" as UILibrary] : [];
-    if (next.length !== libraries.length || next.some((l, i) => l !== libraries[i])) {
-      setLibraries(next);
-      if (!next.includes(primaryLib) && next.length > 0) {
-        setPrimaryLib(next[0]);
-      }
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [framework]);
+  const selectedPalette = palettes.find((p) => p.id === paletteId);
 
   const handleStart = async (prompt: string, attachments?: AttachedFile[]) => {
     if (!paletteId || !model) return;
     setCreating(true);
     try {
-      // Store attachments in memory — they survive the client-side redirect
       if (attachments && attachments.length > 0) {
         setPendingAttachments(attachments);
       }
       const chat = await createChat({
-        name: "Untitled Chat",
-        type: "CODE",
-        framework,
-        libraries,
+        name: name.trim() || "Untitled Presentation",
+        type: "PRESENTATION",
+        slideTheme,
         modelName: model,
         paletteId,
       });
-      // Navigate to chat thread with the first prompt pre-queued
-      router.push(`/chat/${chat.id}?firstPrompt=${encodeURIComponent(prompt)}`);
+      router.push(`/presentations/${chat.id}?firstPrompt=${encodeURIComponent(prompt)}`);
     } finally {
       setCreating(false);
     }
   };
 
   return (
-    <div className="p-6 max-w-2xl mx-auto space-y-6">
+    <div className="p-6 max-w-3xl mx-auto space-y-6">
       <div className="flex items-center gap-3">
-        <Link href="/chat" className="p-1.5 rounded-lg hover:bg-muted transition-colors">
+        <Link href="/presentations" className="p-1.5 rounded-lg hover:bg-muted transition-colors">
           <ArrowLeft className="w-4 h-4" />
         </Link>
-        <h1 className="text-xl font-bold">New Code Chat</h1>
+        <h1 className="text-xl font-bold">New Presentation</h1>
       </div>
 
       <div className="space-y-5 bg-card border border-border rounded-xl p-5">
+        {/* Presentation Name */}
+        <section>
+          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
+            Presentation Name
+          </label>
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="e.g. Q3 Analytics Pitch Deck"
+            className="mt-2 w-full px-3 py-2 rounded-lg border border-border bg-background text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-jedith-copper/40 focus:border-jedith-copper transition-colors"
+          />
+          <p className="mt-1 text-[11px] text-muted-foreground">
+            Leave blank to auto-generate from your first prompt
+          </p>
+        </section>
+
         {/* Palette */}
         <section>
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
@@ -92,28 +92,16 @@ export default function NewChatPage() {
           </div>
         </section>
 
-        {/* Framework */}
+        {/* Slide Theme */}
         <section>
           <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            Framework
+            Slide Theme
           </label>
           <div className="mt-2">
-            <FrameworkSelector value={framework} onChange={setFramework} />
-          </div>
-        </section>
-
-        {/* Libraries */}
-        <section>
-          <label className="text-xs font-medium text-muted-foreground uppercase tracking-wide">
-            UI Libraries
-          </label>
-          <div className="mt-2">
-            <LibrarySelector
-              selected={libraries}
-              onChange={setLibraries}
-              primary={primaryLib}
-              onPrimaryChange={setPrimaryLib}
-              framework={framework}
+            <SlideThemeSelector
+              value={slideTheme}
+              onChange={setSlideTheme}
+              palette={selectedPalette?.colors}
             />
           </div>
         </section>
@@ -127,9 +115,9 @@ export default function NewChatPage() {
         </section>
       </div>
 
-      {/* Prompt input */}
+      {/* Prompt */}
       <div className="space-y-2">
-        <p className="text-sm font-medium">What do you want to build?</p>
+        <p className="text-sm font-medium">What presentation do you need?</p>
         {!paletteId && (
           <p className="text-xs text-amber-400 bg-amber-500/10 px-3 py-2 rounded-lg border border-amber-500/20">
             Select a palette above before generating
@@ -144,16 +132,24 @@ export default function NewChatPage() {
           onSubmit={handleStart}
           loading={creating}
           disabled={!paletteId || !model}
-          placeholder="e.g. Create a pricing page with 3 tiers using the brand colors"
+          placeholder="e.g. 5-slide pitch deck for our analytics dashboard covering: problem, solution, demo, pricing, CTA"
         />
       </div>
 
       {creating && (
         <div className="flex items-center gap-2 text-sm text-muted-foreground">
           <Loader2 className="w-4 h-4 animate-spin" />
-          Creating chat and generating…
+          Creating presentation and generating slides…
         </div>
       )}
     </div>
+  );
+}
+
+export default function NewPresentationPage() {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin w-6 h-6 border-2 border-jedith-copper border-t-transparent rounded-full" /></div>}>
+      <NewPresentationPageInner />
+    </Suspense>
   );
 }

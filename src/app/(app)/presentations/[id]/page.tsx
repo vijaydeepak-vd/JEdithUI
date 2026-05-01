@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef, use, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import { ArrowLeft, Download, FileDown, Loader2, Copy, Check } from "lucide-react";
 import Link from "next/link";
@@ -15,7 +15,7 @@ import { buildFileContext } from "@/lib/file-reader";
 import { consumePendingAttachments } from "@/lib/pending-attachments";
 import type { PaletteColor, SlideTheme, AttachedFile } from "@/types";
 
-export default function PresentationChatPage({
+function PresentationChatPageInner({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -404,5 +404,17 @@ export default function PresentationChatPage({
         </div>
       </div>
     </div>
+  );
+}
+
+export default function PresentationChatPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin w-6 h-6 border-2 border-jedith-copper border-t-transparent rounded-full" /></div>}>
+      <PresentationChatPageInner params={params} />
+    </Suspense>
   );
 }

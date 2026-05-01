@@ -14,7 +14,7 @@ import { OllamaStatus } from "./OllamaStatus";
 import { cn } from "@/lib/utils";
 
 const NAV_ITEMS = [
-  { href: "/", label: "Dashboard", icon: LayoutDashboard },
+  { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
   { href: "/palettes", label: "Palettes", icon: Palette },
   { href: "/chat", label: "Code Chats", icon: MessageSquare },
   { href: "/presentations", label: "Presentations", icon: Presentation },
@@ -54,8 +54,7 @@ export function Sidebar() {
       {/* Nav items */}
       <nav className="flex-1 px-3 space-y-0.5 overflow-y-auto pb-4">
         {NAV_ITEMS.map(({ href, label, icon: Icon }) => {
-          const active =
-            href === "/" ? pathname === "/" : pathname.startsWith(href);
+          const active = pathname.startsWith(href);
           return (
             <Link
               key={href}

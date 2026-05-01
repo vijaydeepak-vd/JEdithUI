@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, use } from "react";
+import { useState, useEffect, useRef, use, Suspense } from "react";
 import { useSearchParams } from "next/navigation";
 import {
   ArrowLeft,
@@ -28,7 +28,7 @@ import type { MessageData, PaletteColor, Framework, UILibrary, AttachedFile } fr
 
 type LeftTab = "preview" | "code";
 
-export default function ChatPage({
+function ChatPageInner({
   params,
 }: {
   params: Promise<{ id: string }>;
@@ -534,5 +534,17 @@ export default function ChatPage({
         onCancel={() => setSkillModalOpen(false)}
       />
     </div>
+  );
+}
+
+export default function ChatPage({
+  params,
+}: {
+  params: Promise<{ id: string }>;
+}) {
+  return (
+    <Suspense fallback={<div className="flex items-center justify-center h-full"><div className="animate-spin w-6 h-6 border-2 border-jedith-copper border-t-transparent rounded-full" /></div>}>
+      <ChatPageInner params={params} />
+    </Suspense>
   );
 }

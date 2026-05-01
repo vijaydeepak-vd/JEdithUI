@@ -7,8 +7,8 @@ import type {
 } from "@/types";
 
 // ─── Configuration ─────────────────────────────────
-// Supports both local Ollama and cloud-hosted Ollama-compatible endpoints.
-// Set OLLAMA_BASE_URL to a cloud endpoint and OLLAMA_API_KEY for auth.
+// Connects to a cloud-hosted Ollama-compatible endpoint.
+// Configure via OLLAMA_BASE_URL and OLLAMA_API_KEY env vars.
 
 const OLLAMA_BASE_URL =
   process.env.OLLAMA_BASE_URL ||
