@@ -4,6 +4,7 @@ export const promptQuotaStorageKey = "jedith:prompt-quota";
 export const promptQuotaUpdatedEvent = "jedith:prompt-quota-updated";
 
 export type PromptQuotaSnapshot = {
+  unlimited?: boolean;
   limit: number;
   remaining: number;
   resetAt?: string;
@@ -15,6 +16,16 @@ function isClient(): boolean {
 }
 
 function normalizeSnapshot(snapshot: PromptQuotaSnapshot): PromptQuotaSnapshot {
+  if (snapshot.unlimited) {
+    return {
+      unlimited: true,
+      limit: dailyPromptLimit,
+      remaining: dailyPromptLimit,
+      resetAt: snapshot.resetAt,
+      updatedAt: snapshot.updatedAt,
+    };
+  }
+
   const limit = Number.isFinite(snapshot.limit)
     ? Math.max(1, Math.floor(snapshot.limit))
     : dailyPromptLimit;
@@ -56,6 +67,18 @@ export function writePromptQuotaSnapshot(snapshot: PromptQuotaSnapshot): void {
 }
 
 export function updatePromptQuotaFromHeaders(headers: Headers): void {
+  const unlimitedHeader = headers.get("X-RateLimit-Unlimited");
+  if (unlimitedHeader === "1") {
+    writePromptQuotaSnapshot({
+      unlimited: true,
+      limit: dailyPromptLimit,
+      remaining: dailyPromptLimit,
+      resetAt: undefined,
+      updatedAt: new Date().toISOString(),
+    });
+    return;
+  }
+
   const limitHeader = headers.get("X-RateLimit-Limit");
   const remainingHeader = headers.get("X-RateLimit-Remaining");
 
@@ -74,10 +97,22 @@ export function updatePromptQuotaFromHeaders(headers: Headers): void {
 }
 
 export function updatePromptQuotaFromPayload(payload: {
+  unlimited?: boolean;
   limit?: number;
   remaining?: number;
   resetAt?: string;
 }): void {
+  if (payload.unlimited) {
+    writePromptQuotaSnapshot({
+      unlimited: true,
+      limit: dailyPromptLimit,
+      remaining: dailyPromptLimit,
+      resetAt: undefined,
+      updatedAt: new Date().toISOString(),
+    });
+    return;
+  }
+
   if (typeof payload.limit !== "number" || typeof payload.remaining !== "number") {
     return;
   }

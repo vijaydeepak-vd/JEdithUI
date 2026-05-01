@@ -11,6 +11,7 @@ type QuotaStatus = {
   remaining: number;
   resetAt: string;
   ip: string;
+  unlimited: boolean;
 };
 
 let redisClient: Redis | null | undefined;
@@ -34,6 +35,62 @@ function getRedisClient(): Redis | null {
 
 function sanitizeKeyPart(value: string): string {
   return value.trim().replace(/[^a-zA-Z0-9:._-]/g, "_").slice(0, 120);
+}
+
+function parseHostname(value: string | null | undefined): string | null {
+  if (!value) return null;
+
+  const trimmed = value.trim();
+  if (!trimmed) return null;
+
+  try {
+    if (trimmed.startsWith("http://") || trimmed.startsWith("https://")) {
+      return new URL(trimmed).hostname.toLowerCase();
+    }
+  } catch {
+    return null;
+  }
+
+  const first = trimmed.split(",")[0]?.trim() ?? trimmed;
+  const withoutPort = first.replace(/^\[|\]$/g, "").split(":")[0]?.trim();
+  return withoutPort ? withoutPort.toLowerCase() : null;
+}
+
+function isLocalHostname(hostname: string | null | undefined): boolean {
+  return hostname === "localhost" || hostname === "127.0.0.1" || hostname === "::1";
+}
+
+function getRequestHostname(req: NextRequest): string | null {
+  const forwardedHost = parseHostname(req.headers.get("x-forwarded-host"));
+  if (forwardedHost) return forwardedHost;
+
+  const host = parseHostname(req.headers.get("host"));
+  if (host) return host;
+
+  const origin = parseHostname(req.headers.get("origin"));
+  if (origin) return origin;
+
+  return parseHostname(req.headers.get("referer"));
+}
+
+function isLocalOllamaConfigured(): boolean {
+  const baseUrl = parseHostname(process.env.OLLAMA_BASE_URL);
+  return isLocalHostname(baseUrl);
+}
+
+export function shouldDisableRateLimit(req: NextRequest): boolean {
+  return isLocalOllamaConfigured() && isLocalHostname(getRequestHostname(req));
+}
+
+export function buildUnlimitedQuota(ip: string): QuotaStatus {
+  return {
+    allowed: true,
+    limit: DAILY_PROMPT_LIMIT,
+    remaining: DAILY_PROMPT_LIMIT,
+    resetAt: "",
+    ip,
+    unlimited: true,
+  };
 }
 
 function secondsUntilNextUtcMidnight(now = new Date()): number {
@@ -93,6 +150,7 @@ export async function consumeDailyPromptCredit(ip: string): Promise<QuotaStatus>
       remaining: DAILY_PROMPT_LIMIT,
       resetAt,
       ip,
+      unlimited: false,
     };
   }
 
@@ -131,12 +189,28 @@ return remaining
     remaining: Math.max(0, remaining),
     resetAt,
     ip,
+    unlimited: false,
   };
+}
+
+export function applyQuotaHeaders(response: Response, quota: QuotaStatus): void {
+  if (quota.unlimited) {
+    response.headers.set("X-RateLimit-Unlimited", "1");
+    response.headers.set("X-RateLimit-Limit", "infinity");
+    response.headers.set("X-RateLimit-Remaining", "infinity");
+    response.headers.set("X-RateLimit-Reset", "never");
+    return;
+  }
+
+  response.headers.set("X-RateLimit-Unlimited", "0");
+  response.headers.set("X-RateLimit-Limit", String(quota.limit));
+  response.headers.set("X-RateLimit-Remaining", String(quota.remaining));
+  response.headers.set("X-RateLimit-Reset", quota.resetAt);
 }
 
 export function buildQuotaExceededPayload(quota: QuotaStatus) {
   return {
-    error: "Daily quota exceeded. You have used all 5 prompts for today.",
+    error: "You have reached your daily credit quota.",
     code: QUOTA_ERROR_CODE,
     limit: quota.limit,
     remaining: quota.remaining,

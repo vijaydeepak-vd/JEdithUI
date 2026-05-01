@@ -47,9 +47,9 @@ export function QuotaExceededModal({
             <AlertTriangle className="h-5 w-5" />
           </div>
           <div>
-            <h2 className="text-lg font-semibold text-foreground">Daily quota exceeded</h2>
+            <h2 className="text-lg font-semibold text-foreground">Daily credit quota exceeded</h2>
             <p className="mt-1 text-sm text-muted-foreground">
-              You have used all 5 prompts available for today from this IP address.
+              You have reached your daily credit quota.
             </p>
           </div>
         </div>

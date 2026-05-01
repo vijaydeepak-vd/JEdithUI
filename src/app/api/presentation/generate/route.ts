@@ -1,9 +1,12 @@
 import { NextRequest, NextResponse } from "next/server";
 import { generateSlides } from "@/lib/ai/generate-slides";
 import {
+  applyQuotaHeaders,
+  buildUnlimitedQuota,
   buildQuotaExceededPayload,
   consumeDailyPromptCredit,
   getClientIp,
+  shouldDisableRateLimit,
 } from "@/lib/rate-limit";
 import { z } from "zod";
 import type { PaletteColor, SlideTheme } from "@/types";
@@ -37,7 +40,10 @@ export async function POST(req: NextRequest) {
   if (!parsed.success)
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  const quota = await consumeDailyPromptCredit(getClientIp(req));
+  const clientIp = getClientIp(req);
+  const quota = shouldDisableRateLimit(req)
+    ? buildUnlimitedQuota(clientIp)
+    : await consumeDailyPromptCredit(clientIp);
   if (!quota.allowed) {
     return NextResponse.json(buildQuotaExceededPayload(quota), { status: 429 });
   }
@@ -65,9 +71,7 @@ export async function POST(req: NextRequest) {
       slideCount: result.slideCount,
     });
 
-    response.headers.set("X-RateLimit-Limit", String(quota.limit));
-    response.headers.set("X-RateLimit-Remaining", String(quota.remaining));
-    response.headers.set("X-RateLimit-Reset", quota.resetAt);
+    applyQuotaHeaders(response, quota);
 
     return response;
   } catch (error) {

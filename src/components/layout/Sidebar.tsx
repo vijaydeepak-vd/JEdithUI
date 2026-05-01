@@ -47,13 +47,18 @@ export function Sidebar() {
 
   const limit = quota?.limit ?? dailyPromptLimit;
   const remaining = quota?.remaining ?? limit;
+  const isUnlimited = quota?.unlimited === true;
   const used = Math.max(0, limit - remaining);
   const usedPercent = useMemo(() => {
+    if (isUnlimited) return 100;
     if (limit <= 0) return 0;
     return Math.min(100, Math.round((used / limit) * 100));
-  }, [limit, used]);
+  }, [isUnlimited, limit, used]);
 
   const resetTimeLabel = useMemo(() => {
+    if (isUnlimited) {
+      return "Unlimited in local mode (localhost + local Ollama)";
+    }
     if (!quota?.resetAt) return "Resets at next UTC midnight";
 
     const reset = new Date(quota.resetAt);
@@ -64,7 +69,7 @@ export function Sidebar() {
       minute: "2-digit",
       timeZoneName: "short",
     })}`;
-  }, [quota?.resetAt]);
+  }, [isUnlimited, quota?.resetAt]);
 
   return (
     <aside className="w-60 flex-shrink-0 h-screen flex flex-col sidebar-gradient">
@@ -129,17 +134,25 @@ export function Sidebar() {
       <div className="px-3 pb-4">
         <div className="rounded-xl bg-white/6 px-3 py-2.5 border border-white/8 mb-2.5">
           <div className="flex items-center justify-between text-[10px] uppercase tracking-widest text-white/45">
-            <span>Daily Credits</span>
-            <span>{remaining}/{limit}</span>
+            <span className="text-white">Daily Credits</span>
+            {isUnlimited ? (
+              <span className="text-white text-xs">♾️</span>
+            ) : (
+              <span className="text-white text-xs">{`${remaining}/${limit}`}</span>
+            )}
           </div>
           <div className="mt-2 h-1.5 rounded-full bg-white/10 overflow-hidden">
             <div
-              className="h-full rounded-full bg-jedith-copper transition-all duration-300"
+              className={cn(
+                "h-full rounded-full transition-all duration-300",
+                isUnlimited ? "bg-emerald-400" : "bg-jedith-copper"
+              )}
               style={{ width: `${usedPercent}%` }}
             />
           </div>
           <p className="mt-2 text-[11px] text-white/65">
-            {used} used today. {resetTimeLabel}
+            {isUnlimited ? "" : `${used} used today. `}
+            {resetTimeLabel}
           </p>
         </div>
         <div className="rounded-xl bg-white/6 px-3 py-2.5 border border-white/8">
