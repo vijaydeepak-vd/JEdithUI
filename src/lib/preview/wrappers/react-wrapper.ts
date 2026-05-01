@@ -204,5 +204,19 @@ function transformForBrowser(code: string): string {
         /^export\s+(const|let|var|function|class)\s+/gm,
         "$1 "
       )
+
+      // 9. Strip TS type assertions that break Babel preview
+      //    e.g. `} as any`, `} as React.CSSProperties`, `} as const`
+      .replace(/\}\s+as\s+(?:any|const|React\.\w+|CSSProperties|Record<[^>]+>|[A-Z]\w*(?:<[^>]+>)?)\s*/g, "} ")
+
+      // 10. Strip inline `as Type` on expressions (e.g. `value as string`)
+      .replace(/(\w)\s+as\s+(?:any|string|number|boolean|React\.\w+|CSSProperties|[A-Z]\w*(?:<[^>]+>)?)/g, "$1")
+
+      // 11. Strip interface/type declarations (pure TS, no runtime value)
+      .replace(/^(?:export\s+)?(?:interface|type)\s+\w+[\s\S]*?(?=\n(?:const|let|var|function|class|\/\/|\/\*|$))/gm, "")
+
+      // 12. Strip generic type parameters on function declarations
+      //     e.g. `function App<T extends Props>()` → `function App()`
+      .replace(/(function\s+\w+)<[^>]+>/g, "$1")
   );
 }

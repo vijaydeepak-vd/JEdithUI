@@ -13,17 +13,13 @@ const TEXT_EXTENSIONS = new Set([
 
 const IMAGE_EXTENSIONS = new Set(["png", "jpg", "jpeg", "webp", "gif", "bmp"]);
 
-const DOCUMENT_EXTENSIONS = new Set(["pdf", "doc", "docx", "xls", "xlsx", "pptx"]);
-
-/** Map extensions to MIME accept strings for the file picker */
+/** Map extensions to MIME accept strings for the file picker.
+ *  Only text-based and image files are accepted — binary documents
+ *  (PDF, DOCX, XLSX) are excluded because we cannot extract their text. */
 export const ACCEPTED_FILE_TYPES: Record<string, string[]> = {
   "image/*": [".png", ".jpg", ".jpeg", ".webp", ".gif"],
   "text/*": [".txt", ".md", ".csv", ".log", ".xml", ".html", ".htm", ".yaml", ".yml", ".ini", ".toml", ".env", ".sql"],
   "application/json": [".json"],
-  "application/pdf": [".pdf"],
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document": [".docx"],
-  "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet": [".xlsx"],
-  "application/vnd.ms-excel": [".xls"],
   "text/x-typescript": [".ts", ".tsx"],
   "text/javascript": [".js", ".jsx"],
 };
@@ -36,11 +32,9 @@ export function categorizeFile(file: File): FileCategory {
   const ext = getExtension(file.name);
   if (IMAGE_EXTENSIONS.has(ext)) return "image";
   if (TEXT_EXTENSIONS.has(ext)) return "text";
-  if (DOCUMENT_EXTENSIONS.has(ext)) return "document";
   // Fallback: check MIME type
   if (file.type.startsWith("image/")) return "image";
-  if (file.type.startsWith("text/") || file.type === "application/json") return "text";
-  return "document";
+  return "text";
 }
 
 function readAsBase64(file: File): Promise<string> {
@@ -105,7 +99,6 @@ export function formatFileSize(bytes: number): string {
 export function getFileIcon(file: AttachedFile): string {
   const ext = getExtension(file.name);
   const icons: Record<string, string> = {
-    pdf: "📄", doc: "📝", docx: "📝", xls: "📊", xlsx: "📊",
     json: "{ }", csv: "📊", md: "📑", txt: "📃", sql: "🗃️",
     ts: "TS", tsx: "⚛️", js: "JS", jsx: "⚛️", py: "🐍",
     html: "🌐", css: "🎨", yaml: "⚙️", yml: "⚙️", xml: "📋",

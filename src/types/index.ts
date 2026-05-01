@@ -39,7 +39,7 @@ export type UILibrary =
 
 export type ExportFormat = "pptx" | "pdf" | "html";
 
-export type FileCategory = "image" | "text" | "document";
+export type FileCategory = "image" | "text";
 
 export interface AttachedFile {
   id: string;

@@ -12,7 +12,8 @@ import { PromptInput } from "@/components/generator/PromptInput";
 import { useChats } from "@/hooks/useChat";
 import { useOllamaModels } from "@/hooks/useOllamaModels";
 import { getCompatibleLibraries } from "@/lib/ai/library-configs";
-import type { Framework, UILibrary } from "@/types";
+import { setPendingAttachments } from "@/lib/pending-attachments";
+import type { Framework, UILibrary, AttachedFile } from "@/types";
 
 export default function NewChatPage() {
   const router = useRouter();
@@ -48,10 +49,14 @@ export default function NewChatPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [framework]);
 
-  const handleStart = async (prompt: string) => {
+  const handleStart = async (prompt: string, attachments?: AttachedFile[]) => {
     if (!paletteId || !model) return;
     setCreating(true);
     try {
+      // Store attachments in memory — they survive the client-side redirect
+      if (attachments && attachments.length > 0) {
+        setPendingAttachments(attachments);
+      }
       const chat = await createChat({
         name: "Untitled Chat",
         type: "CODE",
@@ -126,13 +131,19 @@ export default function NewChatPage() {
       <div className="space-y-2">
         <p className="text-sm font-medium">What do you want to build?</p>
         {!paletteId && (
-          <p className="text-xs text-amber-600 bg-amber-50 px-3 py-2 rounded-lg border border-amber-200">
+          <p className="text-xs text-amber-400 bg-amber-500/10 px-3 py-2 rounded-lg border border-amber-500/20">
             Select a palette above before generating
+          </p>
+        )}
+        {!model && (
+          <p className="text-xs text-amber-400 bg-amber-500/10 px-3 py-2 rounded-lg border border-amber-500/20">
+            Select an AI model above before generating
           </p>
         )}
         <PromptInput
           onSubmit={handleStart}
           loading={creating}
+          disabled={!paletteId || !model}
           placeholder="e.g. Create a pricing page with 3 tiers using the brand colors"
         />
       </div>

@@ -11,7 +11,8 @@ import { PromptInput } from "@/components/generator/PromptInput";
 import { useChats } from "@/hooks/useChat";
 import { useOllamaModels } from "@/hooks/useOllamaModels";
 import { usePalettes } from "@/hooks/usePalettes";
-import type { SlideTheme } from "@/types";
+import { setPendingAttachments } from "@/lib/pending-attachments";
+import type { SlideTheme, AttachedFile } from "@/types";
 
 export default function NewPresentationPage() {
   const router = useRouter();
@@ -34,10 +35,13 @@ export default function NewPresentationPage() {
 
   const selectedPalette = palettes.find((p) => p.id === paletteId);
 
-  const handleStart = async (prompt: string) => {
+  const handleStart = async (prompt: string, attachments?: AttachedFile[]) => {
     if (!paletteId || !model) return;
     setCreating(true);
     try {
+      if (attachments && attachments.length > 0) {
+        setPendingAttachments(attachments);
+      }
       const chat = await createChat({
         name: name.trim() || "Untitled Presentation",
         type: "PRESENTATION",
@@ -119,9 +123,15 @@ export default function NewPresentationPage() {
             Select a palette above before generating
           </p>
         )}
+        {!model && (
+          <p className="text-xs text-amber-400 bg-amber-500/10 px-3 py-2 rounded-lg border border-amber-500/20">
+            Select an AI model above before generating
+          </p>
+        )}
         <PromptInput
           onSubmit={handleStart}
           loading={creating}
+          disabled={!paletteId || !model}
           placeholder="e.g. 5-slide pitch deck for our analytics dashboard covering: problem, solution, demo, pricing, CTA"
         />
       </div>

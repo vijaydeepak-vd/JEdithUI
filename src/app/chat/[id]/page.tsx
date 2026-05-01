@@ -22,6 +22,7 @@ import { CodePreview } from "@/components/chat/CodePreview";
 import { SkillNameModal } from "@/components/ui/SkillNameModal";
 import { timeAgo, generateChatName } from "@/lib/utils";
 import { buildFileContext, getFirstImageBase64 } from "@/lib/file-reader";
+import { consumePendingAttachments } from "@/lib/pending-attachments";
 import { useOllamaModels } from "@/hooks/useOllamaModels";
 import type { MessageData, PaletteColor, Framework, UILibrary, AttachedFile } from "@/types";
 
@@ -60,7 +61,9 @@ export default function ChatPage({
   useEffect(() => {
     if (firstPrompt && !firstPromptSent && chat && messages.length === 0 && !messagesLoading) {
       setFirstPromptSent(true);
-      handleSend(firstPrompt);
+      // Pick up any attachments stored before the redirect from /chat/new
+      const pendingFiles = consumePendingAttachments() ?? undefined;
+      handleSend(firstPrompt, pendingFiles);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firstPrompt, chat, messages.length, firstPromptSent, messagesLoading]);
@@ -82,6 +85,12 @@ export default function ChatPage({
     // Process attachments: extract file context and first image
     const fileContext = attachments ? buildFileContext(attachments) : undefined;
     const imageBase64 = attachments ? getFirstImageBase64(attachments) : undefined;
+
+    // Build chat history from existing messages (text only, no images)
+    const chatHistory = messages.map((msg) => ({
+      role: msg.role as "USER" | "ASSISTANT",
+      content: msg.content,
+    }));
 
     // Auto-name the chat from the first prompt
     if (chat.name === "Untitled Chat" || !chat.name) {
@@ -111,7 +120,7 @@ export default function ChatPage({
     const currentVersion = latestCodeVersions[0]?.version ?? 0;
 
     try {
-      // Call stateless generate API with all context
+      // Call stateless generate API with all context + conversation history
       const res = await fetch("/api/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -124,6 +133,7 @@ export default function ChatPage({
           existingCode,
           imageBase64,
           fileContext,
+          chatHistory,
         }),
       });
 

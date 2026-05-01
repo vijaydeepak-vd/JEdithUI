@@ -11,6 +11,7 @@ import type { AttachedFile } from "@/types";
 interface PromptInputProps {
   onSubmit: (prompt: string, attachments?: AttachedFile[]) => void;
   loading?: boolean;
+  disabled?: boolean;
   placeholder?: string;
   className?: string;
 }
@@ -20,6 +21,7 @@ const MAX_FILES = 10;
 export function PromptInput({
   onSubmit,
   loading = false,
+  disabled = false,
   placeholder = "Describe the UI you want to generate\u2026",
   className,
 }: PromptInputProps) {
@@ -34,7 +36,7 @@ export function PromptInput({
 
   const handleSubmit = () => {
     const trimmed = value.trim();
-    if ((!trimmed && !hasAttachments) || loading || reading) return;
+    if ((!trimmed && !hasAttachments) || loading || reading || disabled) return;
     const prompt = trimmed || (hasImage ? "Generate a UI component matching this screenshot" : "");
     if (!prompt) return;
     onSubmit(prompt, hasAttachments ? attachments : undefined);
@@ -148,8 +150,8 @@ export function PromptInput({
         {/* Attach button */}
         <button
           onClick={openFilePicker}
-          disabled={loading || reading}
-          title="Attach files (images, documents, code, data)"
+          disabled={loading || reading || disabled}
+          title="Attach files (images, code, text, JSON, CSV)"
           className="flex-shrink-0 w-8 h-8 rounded-lg border border-border text-muted-foreground flex items-center justify-center hover:bg-muted hover:text-foreground disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {reading ? (
@@ -171,12 +173,12 @@ export function PromptInput({
               : placeholder
           }
           rows={1}
-          disabled={loading}
+          disabled={loading || disabled}
           className="flex-1 resize-none bg-transparent text-sm text-foreground placeholder:text-muted-foreground focus:outline-none min-h-[24px] max-h-40 disabled:opacity-50"
         />
         <button
           onClick={handleSubmit}
-          disabled={(!value.trim() && !hasAttachments) || loading || reading}
+          disabled={(!value.trim() && !hasAttachments) || loading || reading || disabled}
           className="flex-shrink-0 w-8 h-8 rounded-lg bg-jedith-forest text-white flex items-center justify-center hover:bg-jedith-forest-light disabled:opacity-40 disabled:cursor-not-allowed transition-colors"
         >
           {loading ? (

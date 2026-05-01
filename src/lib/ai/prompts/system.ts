@@ -45,7 +45,8 @@ Return the code inside a single code block:
 - Real data (not Lorem ipsum where possible)
 - Proper types where applicable
 - Accessible HTML (aria labels, semantic elements)
-- Clean, readable code`;
+- Clean, readable code
+- NEVER use TypeScript type assertions like \`as any\`, \`as React.CSSProperties\`, or \`as const\` in JSX or inline styles — they cause runtime errors in the preview`;
 }
 
 export function buildImageSystemPrompt(framework: Framework): string {
@@ -84,7 +85,8 @@ Return the code inside a single code block:
 - Real data matching the screenshot content
 - Proper types where applicable
 - Accessible HTML (aria labels, semantic elements)
-- Clean, readable code`;
+- Clean, readable code
+- NEVER use TypeScript type assertions like \`as any\`, \`as React.CSSProperties\`, or \`as const\` in JSX or inline styles — they cause runtime errors in the preview`;
 }
 
 export function buildRefinementSystemPrompt(framework: Framework): string {
@@ -100,6 +102,9 @@ You are refining an existing **${name}** component based on a user instruction.
 4. Return the COMPLETE updated component — not a diff, not partial code.
 5. Export a default function called \`App\`.
 6. You MUST output ${name} code. Do NOT switch frameworks.
+
+## Quality Standards
+- NEVER use TypeScript type assertions like \`as any\`, \`as React.CSSProperties\`, or \`as const\` in JSX or inline styles — they cause runtime errors in the preview
 
 ## Output Format
 Return the complete updated code inside a single code block:

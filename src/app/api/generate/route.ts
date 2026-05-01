@@ -11,6 +11,11 @@ import type { UILibrary, Framework, PaletteColor } from "@/types";
  * and returns generated code. No database reads or writes — the client
  * manages persistence in IndexedDB via Dexie.
  */
+const ChatHistoryEntry = z.object({
+  role: z.enum(["USER", "ASSISTANT"]),
+  content: z.string(),
+});
+
 const GenerateSchema = z.object({
   prompt: z.string().min(1).max(10000),
   model: z.string().min(1),
@@ -22,6 +27,7 @@ const GenerateSchema = z.object({
   existingCode: z.string().optional(),
   imageBase64: z.string().optional(),
   fileContext: z.string().optional(),
+  chatHistory: z.array(ChatHistoryEntry).default([]),
 });
 
 export async function POST(req: NextRequest) {
@@ -30,7 +36,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success)
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  const { prompt, model, palette, libraries, framework, existingCode, imageBase64, fileContext } =
+  const { prompt, model, palette, libraries, framework, existingCode, imageBase64, fileContext, chatHistory } =
     parsed.data;
 
   // Vision model check — strip image if model can't process it
@@ -46,6 +52,11 @@ export async function POST(req: NextRequest) {
   // Prepend file context to the prompt so the AI sees attached file contents
   const enrichedPrompt = fileContext ? `${fileContext}${prompt}` : prompt;
 
+  // Debug: log what's being sent to the AI
+  console.log("[generate] model:", model, "| framework:", framework);
+  console.log("[generate] hasImage:", !!effectiveImage, "| imageSize:", effectiveImage?.length ?? 0);
+  console.log("[generate] hasExistingCode:", !!existingCode, "| prompt:", enrichedPrompt.slice(0, 100));
+
   try {
     const result = await generateCode({
       prompt: enrichedPrompt,
@@ -55,6 +66,10 @@ export async function POST(req: NextRequest) {
       framework: framework as Framework,
       existingCode,
       imageBase64: effectiveImage,
+      chatHistory: chatHistory.map((h) => ({
+        role: h.role.toLowerCase() as "user" | "assistant",
+        content: h.content,
+      })),
     });
 
     return NextResponse.json({

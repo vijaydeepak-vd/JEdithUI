@@ -12,6 +12,7 @@ import { SlidePreview } from "@/components/chat/SlidePreview";
 import { SlideFilmstrip } from "@/components/chat/SlideFilmstrip";
 import { timeAgo, generateChatName } from "@/lib/utils";
 import { buildFileContext } from "@/lib/file-reader";
+import { consumePendingAttachments } from "@/lib/pending-attachments";
 import type { PaletteColor, SlideTheme, AttachedFile } from "@/types";
 
 export default function PresentationChatPage({
@@ -40,7 +41,8 @@ export default function PresentationChatPage({
   useEffect(() => {
     if (firstPrompt && !firstPromptSent && chat && messages.length === 0 && !messagesLoading) {
       setFirstPromptSent(true);
-      handleSend(firstPrompt);
+      const pendingFiles = consumePendingAttachments() ?? undefined;
+      handleSend(firstPrompt, pendingFiles);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [firstPrompt, chat, messages.length, firstPromptSent, messagesLoading]);
@@ -60,6 +62,12 @@ export default function PresentationChatPage({
 
     // Process attachments: extract file context for text-based files
     const fileContext = attachments ? buildFileContext(attachments) : undefined;
+
+    // Build chat history from existing messages (text only)
+    const chatHistory = messages.map((msg) => ({
+      role: msg.role as "USER" | "ASSISTANT",
+      content: msg.content,
+    }));
 
     // Auto-name the chat
     if (chat.name === "Untitled Chat" || chat.name === "Untitled Presentation") {
@@ -87,7 +95,7 @@ export default function PresentationChatPage({
     const currentVersion = latestSlideVersions[0]?.version ?? 0;
 
     try {
-      // Call stateless presentation generate API
+      // Call stateless presentation generate API with conversation history
       const res = await fetch("/api/presentation/generate", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -98,6 +106,7 @@ export default function PresentationChatPage({
           slideTheme,
           existingMarkdown,
           fileContext,
+          chatHistory,
         }),
       });
 

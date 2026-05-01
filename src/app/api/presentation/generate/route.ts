@@ -9,6 +9,11 @@ import type { PaletteColor, SlideTheme } from "@/types";
  * Accepts all context from the client and returns generated slide markdown.
  * No database reads or writes — the client manages persistence in IndexedDB.
  */
+const ChatHistoryEntry = z.object({
+  role: z.enum(["USER", "ASSISTANT"]),
+  content: z.string(),
+});
+
 const GenerateSlidesSchema = z.object({
   prompt: z.string().min(1).max(10000),
   model: z.string().min(1),
@@ -18,6 +23,7 @@ const GenerateSlidesSchema = z.object({
   slideTheme: z.string().default("business"),
   existingMarkdown: z.string().optional(),
   fileContext: z.string().optional(),
+  chatHistory: z.array(ChatHistoryEntry).default([]),
 });
 
 export async function POST(req: NextRequest) {
@@ -26,7 +32,7 @@ export async function POST(req: NextRequest) {
   if (!parsed.success)
     return NextResponse.json({ error: parsed.error.flatten() }, { status: 400 });
 
-  const { prompt, model, palette, slideTheme, existingMarkdown, fileContext } = parsed.data;
+  const { prompt, model, palette, slideTheme, existingMarkdown, fileContext, chatHistory } = parsed.data;
 
   // Prepend file context to the prompt so the AI sees attached file contents
   const enrichedPrompt = fileContext ? `${fileContext}${prompt}` : prompt;
@@ -38,6 +44,10 @@ export async function POST(req: NextRequest) {
       palette: palette as PaletteColor[],
       slideTheme: slideTheme as SlideTheme,
       existingMarkdown,
+      chatHistory: chatHistory.map((h) => ({
+        role: h.role.toLowerCase() as "user" | "assistant",
+        content: h.content,
+      })),
     });
 
     return NextResponse.json({

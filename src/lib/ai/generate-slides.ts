@@ -4,13 +4,22 @@ import { buildMarpContext } from "./prompts/marp-syntax";
 import { countMarpSlides } from "@/lib/utils";
 import type { PaletteColor, SlideTheme, OllamaChatMessage } from "@/types";
 
+interface ChatHistoryMessage {
+  role: "user" | "assistant";
+  content: string;
+}
+
 export interface SlideGenerationContext {
   prompt: string;
   model: string;
   palette: PaletteColor[];
   slideTheme: SlideTheme;
   existingMarkdown?: string;
+  chatHistory?: ChatHistoryMessage[];
 }
+
+/** Max history turns to include. */
+const MAX_HISTORY_TURNS = 10;
 
 export interface SlideGenerationResult {
   markdown: string;
@@ -28,8 +37,17 @@ export async function generateSlides(
   const systemPrompt = isRefinement ? SLIDES_REFINEMENT_PROMPT : SLIDES_SYSTEM_PROMPT;
   const marpContext = buildMarpContext(ctx.palette, ctx.slideTheme);
 
+  // Build history messages (text only, capped)
+  const history: OllamaChatMessage[] = (ctx.chatHistory || [])
+    .slice(-(MAX_HISTORY_TURNS * 2))
+    .map((h) => ({
+      role: h.role === "user" ? "user" as const : "assistant" as const,
+      content: h.content,
+    }));
+
   const messages: OllamaChatMessage[] = [
     { role: "system", content: systemPrompt },
+    ...history,
   ];
 
   if (isRefinement && ctx.existingMarkdown) {
