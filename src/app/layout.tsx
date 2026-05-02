@@ -1,4 +1,6 @@
 import type { Metadata } from "next";
+import { SpeedInsights } from "@vercel/speed-insights/next"
+
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -10,6 +12,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className="dark">
       <body className="antialiased bg-background text-foreground">
+        <SpeedInsights />
         {children}
       </body>
     </html>
