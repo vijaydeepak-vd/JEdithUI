@@ -39,7 +39,10 @@ export function HeroSection() {
         <div
           className="inline-flex items-center gap-2 px-4 py-1.5 rounded-full border border-jedith-forest/30 bg-jedith-forest/10 text-jedith-sage text-xs font-medium mb-8 animate-fade-up"
         >
-          <Sparkles className="w-3.5 h-3.5 text-jedith-copper" />
+          <span className="text-[9px] font-bold uppercase tracking-wider px-1.5 py-0.5 rounded-full bg-jedith-forest text-white leading-none">
+            Alpha
+          </span>
+          <Sparkles className="w-3.5 h-3.5 text-jedith-forest-light" />
           AI-Powered Theme-Aware Code Generator
         </div>
 

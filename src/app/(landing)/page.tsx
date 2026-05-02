@@ -5,7 +5,7 @@ import { FeaturesSection } from "@/components/landing/FeaturesSection";
 import { HowItWorksSection } from "@/components/landing/HowItWorksSection";
 import { CtaSection } from "@/components/landing/CtaSection";
 import { Footer } from "@/components/landing/Footer";
-import { Sparkles } from "lucide-react";
+import { Logo } from "@/components/layout/Logo";
 import Link from "next/link";
 
 export default function LandingPage() {
@@ -14,15 +14,8 @@ export default function LandingPage() {
       {/* Sticky nav bar */}
       <nav className="fixed top-0 left-0 right-0 z-50 border-b border-border/50 bg-background/80 backdrop-blur-md">
         <div className="max-w-6xl mx-auto px-6 h-14 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 group">
-            <div className="w-7 h-7 rounded-lg bg-jedith-copper flex items-center justify-center group-hover:scale-105 transition-transform">
-              <Sparkles className="w-3.5 h-3.5 text-white" />
-            </div>
-            <span className="font-bold text-sm">
-              <span className="text-jedith-sage">J</span>
-              <span className="text-jedith-copper">Edith</span>
-              <span className="text-jedith-sage">UI</span>
-            </span>
+          <Link href="/" className="group">
+            <Logo size="sm" />
           </Link>
 
           <div className="flex items-center gap-6">

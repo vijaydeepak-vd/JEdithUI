@@ -1,4 +1,4 @@
-import { Sparkles } from "lucide-react";
+import { Logo } from "@/components/layout/Logo";
 import Link from "next/link";
 
 export function Footer() {
@@ -6,15 +6,8 @@ export function Footer() {
     <footer className="border-t border-border py-8 px-6">
       <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
         {/* Logo */}
-        <Link href="/" className="flex items-center gap-2 group">
-          <div className="w-7 h-7 rounded-lg bg-jedith-copper flex items-center justify-center">
-            <Sparkles className="w-3.5 h-3.5 text-white" />
-          </div>
-          <span className="font-bold text-sm">
-            <span className="text-jedith-sage">J</span>
-            <span className="text-jedith-copper">Edith</span>
-            <span className="text-jedith-sage">UI</span>
-          </span>
+        <Link href="/" className="group">
+          <Logo size="sm" />
         </Link>
 
         {/* Links */}
@@ -35,7 +28,7 @@ export function Footer() {
 
         {/* Copyright */}
         <p className="text-[11px] text-muted-foreground/60">
-          Built with AI
+          &copy; 2026 XYZ. All rights reserved.
         </p>
       </div>
     </footer>

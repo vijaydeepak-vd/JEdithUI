@@ -9,8 +9,8 @@ import {
   Presentation,
   FileCode2,
   LayoutDashboard,
-  Sparkles,
 } from "lucide-react";
+import { Logo } from "./Logo";
 import { OllamaStatus } from "./OllamaStatus";
 import { cn } from "@/lib/utils";
 import { dailyPromptLimit } from "@/lib/rate-limit-constants";
@@ -75,18 +75,8 @@ export function Sidebar() {
     <aside className="w-60 flex-shrink-0 h-screen flex flex-col sidebar-gradient">
       {/* Logo area */}
       <div className="px-5 pt-6 pb-5">
-        <Link href="/" className="flex items-center gap-2.5 group">
-          <div className="w-8 h-8 rounded-lg bg-jedith-copper flex items-center justify-center shadow-lg flex-shrink-0 group-hover:scale-105 transition-transform">
-            <Sparkles className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <span className="text-white font-bold text-base tracking-tight leading-none">
-              JEdithUI
-            </span>
-            <p className="text-white/40 text-[10px] leading-none mt-0.5 font-normal">
-              Scan · Theme · Generate
-            </p>
-          </div>
+        <Link href="/" className="group">
+          <Logo tagline="Scan · Theme · Generate" />
         </Link>
       </div>
 
