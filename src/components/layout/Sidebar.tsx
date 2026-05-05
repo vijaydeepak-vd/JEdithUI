@@ -17,6 +17,7 @@ import { dailyPromptLimit } from "@/lib/rate-limit-constants";
 import {
   promptQuotaUpdatedEvent,
   readPromptQuotaSnapshot,
+  updatePromptQuotaFromPayload,
   type PromptQuotaSnapshot,
 } from "@/lib/prompt-quota-client";
 
@@ -35,7 +36,20 @@ export function Sidebar() {
   useEffect(() => {
     const sync = () => setQuota(readPromptQuotaSnapshot());
 
+    // Hydrate from localStorage first
     sync();
+
+    // Fetch fresh quota from server on app load
+    fetch("/api/quota")
+      .then((res) => (res.ok ? res.json() : null))
+      .then((data) => {
+        if (data) {
+          updatePromptQuotaFromPayload(data);
+          sync();
+        }
+      })
+      .catch(() => {});
+
     window.addEventListener(promptQuotaUpdatedEvent, sync);
     window.addEventListener("storage", sync);
 

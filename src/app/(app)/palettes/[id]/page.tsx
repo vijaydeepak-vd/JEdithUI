@@ -68,11 +68,15 @@ export default function PaletteDetailPage() {
         }),
       });
       if (!res.ok) throw new Error("Failed to generate skill");
-      const blob = await res.blob();
+      const { filename, zipBase64 } = await res.json();
+      const binary = atob(zipBase64);
+      const bytes = new Uint8Array(binary.length);
+      for (let i = 0; i < binary.length; i++) bytes[i] = binary.charCodeAt(i);
+      const blob = new Blob([bytes], { type: "application/zip" });
       const url = URL.createObjectURL(blob);
       const a = document.createElement("a");
       a.href = url;
-      a.download = res.headers.get("Content-Disposition")?.match(/filename="(.+)"/)?.[1] || `${skillName}.zip`;
+      a.download = filename || `${skillName}.zip`;
       a.click();
       URL.revokeObjectURL(url);
     } catch (e) {

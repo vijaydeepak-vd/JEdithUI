@@ -193,6 +193,38 @@ return remaining
   };
 }
 
+export async function peekDailyPromptCredit(ip: string): Promise<QuotaStatus> {
+  const now = new Date();
+  const resetAt = nextUtcMidnightIso(now);
+
+  const redis = getRedisClient();
+  if (!redis) {
+    return {
+      allowed: true,
+      limit: DAILY_PROMPT_LIMIT,
+      remaining: DAILY_PROMPT_LIMIT,
+      resetAt,
+      ip,
+      unlimited: false,
+    };
+  }
+
+  const dateBucket = now.toISOString().slice(0, 10);
+  const redisKey = `rate-limit:prompts:${dateBucket}:${sanitizeKeyPart(ip)}`;
+
+  const current = await redis.get<number>(redisKey);
+  const remaining = current === null ? DAILY_PROMPT_LIMIT : Math.max(0, current);
+
+  return {
+    allowed: remaining > 0,
+    limit: DAILY_PROMPT_LIMIT,
+    remaining,
+    resetAt,
+    ip,
+    unlimited: false,
+  };
+}
+
 export function applyQuotaHeaders(response: Response, quota: QuotaStatus): void {
   if (quota.unlimited) {
     response.headers.set("X-RateLimit-Unlimited", "1");

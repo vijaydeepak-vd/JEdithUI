@@ -48,15 +48,12 @@ export async function POST(req: NextRequest) {
   // Build ZIP using built-in zero-dependency builder
   const zipBuffer = generateSkillZipBufferBuiltin(pkg);
 
-  // Return as downloadable ZIP
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return new NextResponse(zipBuffer as any, {
-    status: 200,
-    headers: {
-      "Content-Type": "application/zip",
-      "Content-Disposition": `attachment; filename="${pkg.folderName}.zip"`,
-      "Content-Length": String(zipBuffer.length),
-    },
+  // Return as base64-encoded JSON to avoid Vercel WAF blocking binary responses
+  const zipBase64 = Buffer.from(zipBuffer).toString("base64");
+
+  return NextResponse.json({
+    filename: `${pkg.folderName}.zip`,
+    zipBase64,
   });
 }
 
